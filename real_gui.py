@@ -18,10 +18,16 @@ from sklearn import svm
    TODO:
 
    - find images recursively
-   - drop down box selecting active learning method
+   - drop down box selecting active learning method (current would be 'random')
    - Say which class is which for buttons 1 and 2
+   - load previous pickle file
 
 '''
+
+# this is how you load a pickle file. 'a' is then the dictionary that we saved
+# pkl_file = open(sys.argv[1], 'rb')
+# a = pickle.load(pkl_file)
+
 
 class classifier():
 
