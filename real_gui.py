@@ -4,12 +4,39 @@ import os
 from PIL import Image,ImageTk
 from time import gmtime, strftime  #used to make unique file names to write out to 
 
-#need: I need to implement a way to start
-#from an existing textfile of written data
-#that way one could technically start from
-#where they left off
+import _pickle as pickle
+from sklearn import svm
+
+'''
+   need: I need to implement a way to start
+   from an existing textfile of written data
+   that way one could technically start from
+   where they left off
+'''
+
+'''
+   TODO:
+
+   - find images recursively
+   - drop down box selecting active learning method
+   - Say which class is which for buttons 1 and 2
+
+'''
 
 class classifier():
+
+    # gets all images in subdirectories
+    def getPaths(data_dir):
+       exts = ['png', 'PNG','jpg', 'JPG', 'JPEG']
+       for e in exts:
+           image_paths = []
+           for d, s, fList in os.walk(data_dir):
+               for filename in fList:
+                   if fnmatch.fnmatch(filename, pattern):
+                       fname_ = os.path.join(d,filename)
+                       image_paths.append(fname_)
+       return image_paths
+
 
     #sers up all buttons and binds keys for classification
     def __init__(self, root=None):
@@ -28,11 +55,12 @@ class classifier():
         self.load.grid(column = 0, row = 3, sticky = E)
         self.label = Label(text= "No Image Loaded")
         self.label.grid(row = 0, column = 1, columnspan = 10)
+
         def distorted(event):
-            self.img_dict[self.img_list[self.index]]= "Class 1"
+            self.img_dict[self.img_list[self.index]]= 0
             self.getNext()
         def normal(event):
-            self.img_dict[self.img_list[self.index]]= "Class 2"
+            self.img_dict[self.img_list[self.index]]= 1
             self.getNext()
         self.root.bind(2, distorted) # I should make it so it moves to the next image
         self.root.bind(1, normal)  # after user presses button
@@ -99,8 +127,10 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
-        f = open("pc_" + strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'w')
-        for i in list(self.img_dict.keys()):
-            f.write(i + ":" + self.img_dict[i])
-        f.close()
+   
+        pkl = open(self.path+'/labels.pkl', 'wb')
+        data = pickle.dumps(self.img_dict)
+        pkl.write(data)
+        pkl.close()
+        
         self.root.destroy()
