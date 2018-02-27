@@ -30,8 +30,10 @@ class classifier():
         self.label.grid(row = 0, column = 1, columnspan = 10)
         def distorted(event):
             self.img_dict[self.img_list[self.index]]= "Class 1"
+            self.getNext()
         def normal(event):
             self.img_dict[self.img_list[self.index]]= "Class 2"
+            self.getNext()
         self.root.bind(2, distorted) # I should make it so it moves to the next image
         self.root.bind(1, normal)  # after user presses button
         self.index = 0
