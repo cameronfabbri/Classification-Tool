@@ -21,7 +21,8 @@ from sklearn import svm
    - drop down box selecting active learning method (current would be 'random')
    - Say which class is which for buttons 1 and 2
    - load previous pickle file
-
+   - max image size so the image doesn't change window size
+   - 
 '''
 
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
