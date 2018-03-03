@@ -74,6 +74,7 @@ class classifier():
         self.index = 0
         self.img_dict = {}
         self.path = ""
+        mainloop()
 
     #creates dictionary
     def make_pic_dict(self):
@@ -141,3 +142,4 @@ class classifier():
         pkl.close()
         
         self.root.destroy()
+c = classifier()
