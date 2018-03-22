@@ -4,8 +4,8 @@ import os
 from PIL import Image,ImageTk
 import time
 
-#import _pickle as pickle
-#from sklearn import svm
+import _pickle as pickle
+from sklearn import svm
 
 '''
    need: I need to implement a way to start
@@ -15,20 +15,20 @@ import time
 '''
 
 '''
-   TODO:
-
-   - find images recursively
-   - drop down box selecting active learning method (current would be 'random')
-   - Say which class is which for buttons 1 and 2
+   TODO in order of importance:
+   - In the pickle file store class1 and class2 such that the user can set a label
+   so we don't get confused whether 1 is distorted or 2 is distorted. When starting
+   the program for the first time, check if this is set or not. If not, prompt the user
+   to set it, otherwise just load the value and display it on the GUI somewhere.
    - load previous pickle file
+   - Say which class is which for buttons 1 and 2
+   - drop down box selecting active learning method (current would be 'random')
     x - max image size so the image doesn't change window size
-   -
 '''
 
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
 # pkl_file = open(sys.argv[1], 'rb')
 # a = pickle.load(pkl_file)
-
 
 class classifier():
 
@@ -90,9 +90,8 @@ class classifier():
     def load_img(self):
         im = Image.open(os.path.join(self.path, self.img_list[self.index]))
         photo = ImageTk.PhotoImage(im)
-        self.label.config(image=photo, height = 200, width = 300)
+        self.label.config(image=photo, height = 256, width = 256)
         self.label.image = photo
-
 
     #gets all the image file names from directory
     #calls for the dictionary to be made
@@ -140,10 +139,10 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
-#        pkl = open(self.path+'/labels.pkl', 'wb')
-#        data = pickle.dumps(self.img_dict)
-#        pkl.write(data)
-#       pkl.close()
+        pkl = open(self.path+'/labels.pkl', 'wb')
+        data = pickle.dumps(self.img_dict)
+        pkl.write(data)
+        pkl.close()
         self.root.destroy()
 
 
