@@ -3,7 +3,6 @@ from tkinter import filedialog
 import os
 from PIL import Image,ImageTk
 import time
-
 import _pickle as pickle
 from sklearn import svm
 
@@ -16,6 +15,7 @@ from sklearn import svm
 
 '''
    TODO in order of importance:
+   - Have a third button that is a "no class" if we don't want to use that image.
    - In the pickle file store class1 and class2 such that the user can set a label
    so we don't get confused whether 1 is distorted or 2 is distorted. When starting
    the program for the first time, check if this is set or not. If not, prompt the user
