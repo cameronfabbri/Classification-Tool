@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import filedialog
 import os
 from PIL import Image,ImageTk
-from time import gmtime, strftime  #used to make unique file names to write out to
+import time
 
 #import _pickle as pickle
 #from sklearn import svm
@@ -53,24 +53,29 @@ class classifier():
         self.root.title("Picture Classifier")
         self.root.geometry('500x300')
         self.quit = Button(self.root,text = "Quit", command = self.save)
-        self.quit.grid(column= 3,row = 3)
+        self.quit.grid(column= 3,row = 5)
         self.next = Button(self.root,text = "Next", command = self.getNext)
-        self.next.grid(column= 2, row = 3)
+        self.next.grid(column= 2, row = 5)
         self.prev = Button(self.root,text = "Previous", command = self.getPrev)
-        self.prev.grid(column = 1, row = 3)
+        self.prev.grid(column = 1, row = 5)
         self.load = Button(self.root,text = "Load", command = self.get_path)
-        self.load.grid(column = 0, row = 3)
+        self.load.grid(column = 4, row = 5)
         self.label = Label(text= "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
-
-        def distorted(event):
+        choices = {'random','method 1', 'method 2'}
+        self.option_menu = OptionMenu(self.root,"random", *choices)
+        self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
+        self.option_menu.grid(row = 6, column = 0)
+        
+        def classA(event):
             self.img_dict[self.img_list[self.index]]= 0
             self.getNext()
-        def normal(event):
+        def classB(event):
             self.img_dict[self.img_list[self.index]]= 1
             self.getNext()
-        self.root.bind(2, distorted)
-        self.root.bind(1, normal)
+        
+        self.root.bind(2, classA)
+        self.root.bind(1, classB)
         self.index = 0
         self.img_dict = {}
         self.path = ""
@@ -135,10 +140,10 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
-        pkl = open(self.path+'/labels.pkl', 'wb')
-        data = pickle.dumps(self.img_dict)
-        pkl.write(data)
-        pkl.close()
+#        pkl = open(self.path+'/labels.pkl', 'wb')
+#        data = pickle.dumps(self.img_dict)
+#        pkl.write(data)
+#       pkl.close()
         self.root.destroy()
 
 
