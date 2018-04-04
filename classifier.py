@@ -4,7 +4,7 @@ import os
 from PIL import Image,ImageTk
 import time
 import _pickle as pickle
-from sklearn import svm
+#from sklearn import svm
 
 '''
    need: I need to implement a way to start
@@ -15,14 +15,14 @@ from sklearn import svm
 
 '''
    TODO in order of importance:
-   - Have a third button that is a "no class" if we don't want to use that image.
+   x= Have a third button that is a "no class" if we don't want to use that image.
    - In the pickle file store class1 and class2 such that the user can set a label
    so we don't get confused whether 1 is distorted or 2 is distorted. When starting
    the program for the first time, check if this is set or not. If not, prompt the user
    to set it, otherwise just load the value and display it on the GUI somewhere.
    - load previous pickle file
-   - Say which class is which for buttons 1 and 2
-   - drop down box selecting active learning method (current would be 'random')
+   x-Say which class is which for buttons 1 and 2
+   x- drop down box selecting active learning method (current would be 'random')
     x - max image size so the image doesn't change window size
 '''
 
@@ -62,20 +62,28 @@ class classifier():
         self.load.grid(column = 4, row = 5)
         self.label = Label(text= "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
+        self.classlabel = Label(text= "Class Labels",height = 5, width = 5)
+        self.classlabel.grid(row = 1, column = 11)
+        self.noclass = Button(self.root,text = "No Class", command = self.getNext)
+        self.noclass.grid(column = 5, row = 5)
         choices = {'random','method 1', 'method 2'}
         self.option_menu = OptionMenu(self.root,"random", *choices)
         self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
         self.option_menu.grid(row = 6, column = 0)
-        
+    
         def classA(event):
-            self.img_dict[self.img_list[self.index]]= 0
+            self.img_dict[self.img_list[self.index]]= self.def_label1
             self.getNext()
         def classB(event):
-            self.img_dict[self.img_list[self.index]]= 1
+            self.img_dict[self.img_list[self.index]]= self.def_label2
+            self.getNext()
+        def skipClassEvent(event):
+            self.img_dict[self.img_list[self.index]]= "skipped"
             self.getNext()
         
         self.root.bind(2, classA)
         self.root.bind(1, classB)
+        self.root.bind(3,skipClassEvent)
         self.index = 0
         self.img_dict = {}
         self.path = ""
@@ -144,6 +152,8 @@ class classifier():
         pkl.write(data)
         pkl.close()
         self.root.destroy()
+
+
 
 
 c = classifier()
