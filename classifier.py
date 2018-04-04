@@ -62,8 +62,6 @@ class classifier():
         self.load.grid(column = 4, row = 5)
         self.label = Label(text= "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
-        self.classlabel = Label(text= "Class Labels",height = 5, width = 5)
-        self.classlabel.grid(row = 1, column = 11)
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
         choices = {'random','method 1', 'method 2'}
@@ -72,10 +70,10 @@ class classifier():
         self.option_menu.grid(row = 6, column = 0)
     
         def classA(event):
-            self.img_dict[self.img_list[self.index]]= self.def_label1
+            self.img_dict[self.img_list[self.index]]= "Class A"
             self.getNext()
         def classB(event):
-            self.img_dict[self.img_list[self.index]]= self.def_label2
+            self.img_dict[self.img_list[self.index]]= "Class B"
             self.getNext()
         def skipClassEvent(event):
             self.img_dict[self.img_list[self.index]]= "skipped"
@@ -92,7 +90,8 @@ class classifier():
     #creates dictionary
     def make_pic_dict(self):
         for i in self.img_list:
-            self.img_dict[i]= ""
+            if i != self.path+'/labels.pkl':
+                self.img_dict[i]= ""
 
     #loads image on to the screen using a label
     def load_img(self):
@@ -106,7 +105,12 @@ class classifier():
     #loads first image
     def load_img_s(self):
         self.img_list = os.listdir(self.path)
-        self.make_pic_dict()
+        if self.path+'/labels.pkl' in self.img_list:
+            pkl_file = open(self.path+'/labels.pkl', 'rb')
+            self.img_dict = pickle.load(pkl_file)
+            self.print_dict()
+        else:
+            self.make_pic_dict()
         self.load_img()
 
     #allows user to load any path on computer
