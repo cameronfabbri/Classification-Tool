@@ -15,15 +15,15 @@ import _pickle as pickle
 
 '''
    TODO in order of importance:
-   x= Have a third button that is a "no class" if we don't want to use that image.
+   x - Have a third button that is a "no class" if we don't want to use that image.
    - In the pickle file store class1 and class2 such that the user can set a label
    so we don't get confused whether 1 is distorted or 2 is distorted. When starting
    the program for the first time, check if this is set or not. If not, prompt the user
    to set it, otherwise just load the value and display it on the GUI somewhere.
    - load previous pickle file
-   x-Say which class is which for buttons 1 and 2
-   x- drop down box selecting active learning method (current would be 'random')
-    x - max image size so the image doesn't change window size
+   x -Say which class is which for buttons 1 and 2
+   x - drop down box selecting active learning method (current would be 'random')
+   x - max image size so the image doesn't change window size
 '''
 
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
@@ -52,6 +52,10 @@ class classifier():
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
         self.root.geometry('500x300')
+        self.label1 = Label(self.root,text='0 = Distorted')
+        self.label1.grid(column=0, row=0)
+        self.label1 = Label(self.root,text='1 = Nondistorted')
+        self.label1.grid(column=0, row=1)
         self.quit = Button(self.root,text = "Quit", command = self.save)
         self.quit.grid(column= 3,row = 5)
         self.next = Button(self.root,text = "Next", command = self.getNext)
