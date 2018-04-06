@@ -106,11 +106,9 @@ class classifier():
 
     def load_img_s(self):
         self.img_list = self.getPaths(self.path)
-        #os.listdir(self.path)
         if os.path.isfile(self.path+'/labels.pkl'):
             pkl_file = open(self.path+'/labels.pkl', 'rb')
             self.img_dict = pickle.load(pkl_file)
-            self.print_dict()
         else:
             self.make_pic_dict()
         self.load_img()
