@@ -81,6 +81,8 @@ class classifier():
 
     #loads image on to the screen using a label
     def load_img(self):
+        while self.img_dict[self.img_list[self.index]] != "":
+            self.index +=1
         im = Image.open(os.path.join(self.path, self.img_list[self.index]))
         photo = ImageTk.PhotoImage(im)
         self.label.config(image=photo, height = 256, width = 256)
