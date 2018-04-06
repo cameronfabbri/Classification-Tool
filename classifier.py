@@ -4,14 +4,8 @@ import os
 from PIL import Image,ImageTk
 import time
 import _pickle as pickle
+import fnmatch
 #from sklearn import svm
-
-'''
-   need: I need to implement a way to start
-   from an existing textfile of written data
-   that way one could technically start from
-   where they left off
-'''
 
 '''
    TODO in order of importance:
@@ -20,8 +14,8 @@ import _pickle as pickle
    so we don't get confused whether 1 is distorted or 2 is distorted. When starting
    the program for the first time, check if this is set or not. If not, prompt the user
    to set it, otherwise just load the value and display it on the GUI somewhere.
-   - load previous pickle file
-   x -Say which class is which for buttons 1 and 2
+   x - load previous pickle file
+   x - Say which class is which for buttons 1 and 2
    x - drop down box selecting active learning method (current would be 'random')
    x - max image size so the image doesn't change window size
 '''
@@ -32,19 +26,6 @@ import _pickle as pickle
 
 class classifier():
 
-    # gets all images in subdirectories
-    def getPaths(data_dir):
-       exts = ['png', 'PNG','jpg', 'JPG', 'JPEG']
-       for e in exts:
-           image_paths = []
-           for d, s, fList in os.walk(data_dir):
-               for filename in fList:
-                   if fnmatch.fnmatch(filename, pattern):
-                       fname_ = os.path.join(d,filename)
-                       image_paths.append(fname_)
-       return image_paths
-
-
     #sers up all buttons and binds keys for classification
     def __init__(self, root=None):
         self.img_list = []
@@ -52,9 +33,9 @@ class classifier():
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
         self.root.geometry('500x300')
-        self.label1 = Label(self.root,text='0 = Distorted')
+        self.label1 = Label(self.root,text='1 = Distorted')
         self.label1.grid(column=0, row=0)
-        self.label1 = Label(self.root,text='1 = Nondistorted')
+        self.label1 = Label(self.root,text='2 = Nondistorted')
         self.label1.grid(column=0, row=1)
         self.quit = Button(self.root,text = "Quit", command = self.save)
         self.quit.grid(column= 3,row = 5)
@@ -68,19 +49,19 @@ class classifier():
         self.label.grid(row = 0, column = 1, columnspan = 10)
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
-        choices = {'random','method 1', 'method 2'}
+        choices = {'Random','Closest', 'Farthest'}
         self.option_menu = OptionMenu(self.root,"random", *choices)
         self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
         self.option_menu.grid(row = 6, column = 0)
     
         def classA(event):
-            self.img_dict[self.img_list[self.index]]= "Class A"
+            self.img_dict[self.img_list[self.index]]= "0"
             self.getNext()
         def classB(event):
-            self.img_dict[self.img_list[self.index]]= "Class B"
+            self.img_dict[self.img_list[self.index]]= "1"
             self.getNext()
         def skipClassEvent(event):
-            self.img_dict[self.img_list[self.index]]= "skipped"
+            self.img_dict[self.img_list[self.index]]= "2"
             self.getNext()
         
         self.root.bind(2, classA)
@@ -88,7 +69,8 @@ class classifier():
         self.root.bind(3,skipClassEvent)
         self.index = 0
         self.img_dict = {}
-        self.path = ""
+        # default path if no path is selected yet
+        self.path = '/mnt/data1/'
         mainloop()
 
     #creates dictionary
@@ -107,9 +89,25 @@ class classifier():
     #gets all the image file names from directory
     #calls for the dictionary to be made
     #loads first image
+    def getPaths(self, data_dir):
+       image_paths = []
+       #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
+       #for pattern in exts:
+       pattern = '*.JPEG'
+       if 1:
+           for d, s, fList in os.walk(data_dir):
+              for filename in fList:
+                 if fnmatch.fnmatch(filename, pattern):
+                    fname_ = os.path.join(d,filename)
+                    image_paths.append(fname_)
+           print(len(image_paths))
+           return image_paths
+
+
     def load_img_s(self):
-        self.img_list = os.listdir(self.path)
-        if self.path+'/labels.pkl' in self.img_list:
+        self.img_list = self.getPaths(self.path)
+        #os.listdir(self.path)
+        if os.path.isfile(self.path+'/labels.pkl'):
             pkl_file = open(self.path+'/labels.pkl', 'rb')
             self.img_dict = pickle.load(pkl_file)
             self.print_dict()
