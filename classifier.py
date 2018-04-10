@@ -5,7 +5,12 @@ from PIL import Image,ImageTk
 import time
 import _pickle as pickle
 import fnmatch
+import numpy as np
+import scipy.misc as misc
 #from sklearn import svm
+
+# reads in an image as a numpy array
+# a = misc.imread('n01484850_9995.JPEG')
 
 '''
    TODO in order of importance:
@@ -18,6 +23,22 @@ import fnmatch
    x - Say which class is which for buttons 1 and 2
    x - drop down box selecting active learning method (current would be 'random')
    x - max image size so the image doesn't change window size
+'''
+
+# Active learning bit
+'''
+   http://scikit-learn.org/stable/modules/svm.html
+   https://github.com/cameronfabbri/Compute-Features
+   print np.linalg.norm(a)
+
+   Step 1: Get random image
+   Step 2: Keep getting random images until both classes are covered
+   Step 3: When you have instances from both classes, then train an SVM
+   Step 4: Calculate hyperplane (this is a function in sklearn)
+   Step 5: if farthest: get image farthest from hyperplane
+           if closest: get image closest to hyperplane
+   Step 6: user classifies that, then SVM is updated every x classifications
+
 '''
 
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
@@ -50,15 +71,20 @@ class classifier():
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
         choices = {'Random','Closest', 'Farthest'}
-    
+        modelChoices = {'pixels', 'inception-v1', 'inception-v2'}
+
         self.dropVar = StringVar()
+        self.modelVar = StringVar()
         self.dropVar.set("random")   #default
-        self.option_menu = OptionMenu(self.root,self.dropVar, *choices, command = self.func)
+        self.modelVar.set('pixels')
+        self.option_menu1 = OptionMenu(self.root,self.dropVar, *choices, command = self.func)
+        self.option_menu2 = OptionMenu(self.root,self.modelVar, *modelChoices, command = self.choseModel)
+
         self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
-        self.option_menu.grid(row = 6, column = 0)
+        self.popup_label = Label(self.root, text= "Choose image representation:").grid(row = 7, column = 0)
+        self.option_menu1.grid(row = 6, column = 0)
+        self.option_menu2.grid(row = 8, column = 0)
         
-                        
-    
         def classA(event):
             self.img_dict[self.img_list[self.index]]= "0"
             self.getNext()
@@ -78,6 +104,10 @@ class classifier():
         self.path = '/mnt/data1/'
         mainloop()
     
+    def choseModel(self, value):
+        print('value:',value)
+
+    # preprocessing
     def func(self,value):
         if value == "Closest":
             print("do this")
