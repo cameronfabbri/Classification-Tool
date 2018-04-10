@@ -10,7 +10,7 @@ import fnmatch
 '''
    TODO in order of importance:
    x - Have a third button that is a "no class" if we don't want to use that image.
-   - In the pickle file store class1 and class2 such that the user can set a label
+   -x In the pickle file store class1 and class2 such that the user can set a label
    so we don't get confused whether 1 is distorted or 2 is distorted. When starting
    the program for the first time, check if this is set or not. If not, prompt the user
    to set it, otherwise just load the value and display it on the GUI somewhere.
@@ -26,7 +26,7 @@ import fnmatch
 
 class classifier():
 
-    #sers up all buttons and binds keys for classification
+    #sets up all buttons and binds keys for classification
     def __init__(self, root=None):
         self.img_list = []
         self.root = Tk()
@@ -50,9 +50,14 @@ class classifier():
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
         choices = {'Random','Closest', 'Farthest'}
-        self.option_menu = OptionMenu(self.root,"random", *choices)
+    
+        self.dropVar = StringVar()
+        self.dropVar.set("random")   #default
+        self.option_menu = OptionMenu(self.root,self.dropVar, *choices, command = self.func)
         self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
         self.option_menu.grid(row = 6, column = 0)
+        
+                        
     
         def classA(event):
             self.img_dict[self.img_list[self.index]]= "0"
@@ -72,6 +77,12 @@ class classifier():
         # default path if no path is selected yet
         self.path = '/mnt/data1/'
         mainloop()
+    
+    def func(self,value):
+        if value == "Closest":
+            print("do this")
+        elif value == "Farthest":
+            print("do this now")
 
     #creates dictionary
     def make_pic_dict(self):
@@ -81,12 +92,13 @@ class classifier():
 
     #loads image on to the screen using a label
     def load_img(self):
-        while self.img_dict[self.img_list[self.index]] != "":
+        while self.index != len(self.img_list) and self.img_dict[self.img_list[self.index]] != "" :
             self.index +=1
-        im = Image.open(os.path.join(self.path, self.img_list[self.index]))
-        photo = ImageTk.PhotoImage(im)
-        self.label.config(image=photo, height = 256, width = 256)
-        self.label.image = photo
+        if self.index < len(self.img_list):
+            im = Image.open(os.path.join(self.path, self.img_list[self.index]))
+            photo = ImageTk.PhotoImage(im)
+            self.label.config(image=photo, height = 256, width = 256)
+            self.label.image = photo
 
     #gets all the image file names from directory
     #calls for the dictionary to be made
