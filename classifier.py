@@ -33,7 +33,7 @@ import scipy.misc as misc
 
    Step 1: Get random image
    Step 2: Keep getting random images until both classes are covered
-   Step 3: When you have instances from both classes, then train an SVM
+   Step 3: When you have instances from both classes, then train an SVM with those classified
    Step 4: Calculate hyperplane (this is a function in sklearn)
    Step 5: if farthest: get image farthest from hyperplane
            if closest: get image closest to hyperplane
