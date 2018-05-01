@@ -31,6 +31,7 @@ import scipy.misc as misc
    https://github.com/cameronfabbri/Compute-Features
    print np.linalg.norm(a)
 
+   Load up images at start into a dictionary
    Step 1: Get random image
    Step 2: Keep getting random images until both classes are covered
    Step 3: When you have instances from both classes, then train an SVM with those classified
@@ -49,6 +50,8 @@ class classifier():
 
     #sets up all buttons and binds keys for classification
     def __init__(self, root=None):
+        self.width = 256
+        self.height = 256
         self.img_list = []
         self.root = Tk()
         self.window = Frame(self.root)
@@ -64,7 +67,7 @@ class classifier():
         self.next.grid(column= 2, row = 5)
         self.prev = Button(self.root,text = "Previous", command = self.getPrev)
         self.prev.grid(column = 1, row = 5)
-        self.load = Button(self.root,text = "Load", command = self.get_path)
+        self.load = Button(self.root,text = "Load", command = self.loadImages)
         self.load.grid(column = 4, row = 5)
         self.label = Label(text= "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
@@ -84,7 +87,12 @@ class classifier():
         self.popup_label = Label(self.root, text= "Choose image representation:").grid(row = 7, column = 0)
         self.option_menu1.grid(row = 6, column = 0)
         self.option_menu2.grid(row = 8, column = 0)
-        
+
+        # should contain the index of self.features for what was labeled
+        self.classA_list = [] # [2,5,1]
+        self.classA_list = []
+
+
         def classA(event):
             self.img_dict[self.img_list[self.index]]= "0"
             self.getNext()
@@ -97,13 +105,25 @@ class classifier():
         
         self.root.bind(2, classA)
         self.root.bind(1, classB)
-        self.root.bind(3,skipClassEvent)
+        self.root.bind(3, skipClassEvent)
         self.index = 0
-        self.img_dict = {}
-        # default path if no path is selected yet
         self.path = '/mnt/data1/'
         mainloop()
-    
+
+    '''
+        loads all images (or features) on start up
+        When using features, instead of reading images this will use the feature vector
+    '''
+    def loadImages(self):
+        self.path = filedialog.askdirectory(initialdir='.')
+        paths = self.getPaths(self.path)
+        numImages = len(paths)
+        self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
+        print('Loading images...')
+        for e,p in enumerate(paths):
+            self.features[e, ...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
+        print('Done')
+
     def choseModel(self, value):
         print('value:',value)
 
@@ -127,7 +147,7 @@ class classifier():
         if self.index < len(self.img_list):
             im = Image.open(os.path.join(self.path, self.img_list[self.index]))
             photo = ImageTk.PhotoImage(im)
-            self.label.config(image=photo, height = 256, width = 256)
+            self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
 
     #gets all the image file names from directory
@@ -146,6 +166,7 @@ class classifier():
        print(len(image_paths))
        return image_paths
 
+    '''
     def load_img_s(self):
         self.img_list = self.getPaths(self.path)
         if os.path.isfile(self.path+'/labels.pkl'):
@@ -159,6 +180,7 @@ class classifier():
     def get_path(self):
         self.path = filedialog.askdirectory(initialdir='.')
         self.load_img_s()
+    '''
 
     #used for testing contents of the
     def print_list(self):
@@ -183,11 +205,16 @@ class classifier():
 
     #does not allow user to go past the end of the list
     def getNext(self):
+
+        # if there is a trained svm, get next from here, otherwise random
+
         index = self.index
         index +=1
         if index < len(self.img_list):
             self.index = index
             self.load_img()
+
+        # if both lists have contents, train svm here
 
     #happens each time the user presses quit
     #pushes all data out to text file
