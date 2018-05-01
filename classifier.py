@@ -118,7 +118,7 @@ class classifier():
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
         self.paths = self.getPaths(self.path)
-        numImages = len(paths)
+        numImages = len(self.paths)
         self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
         print('Loading images...')
         for e,p in enumerate(self.paths):
@@ -155,7 +155,6 @@ class classifier():
     #calls for the dictionary to be made
     #loads first image
     def getPaths(self, data_dir):
-       image_paths = []
        #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
        #for pattern in exts:
        pattern = '*.JPEG'
@@ -163,9 +162,9 @@ class classifier():
           for filename in fList:
              if fnmatch.fnmatch(filename, pattern):
                 fname_ = os.path.join(d,filename)
-                image_paths.append(fname_)
-       print(len(image_paths))
-       return image_paths
+                self.paths.append(fname_)
+       print(len(self.paths))
+       return self.paths
 
     '''
     def load_img_s(self):
