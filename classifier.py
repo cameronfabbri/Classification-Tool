@@ -138,14 +138,13 @@ class classifier():
        #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
        #for pattern in exts:
        pattern = '*.JPEG'
-       if 1:
-           for d, s, fList in os.walk(data_dir):
-              for filename in fList:
-                 if fnmatch.fnmatch(filename, pattern):
-                    fname_ = os.path.join(d,filename)
-                    image_paths.append(fname_)
-           print(len(image_paths))
-           return image_paths
+       for d, s, fList in os.walk(data_dir):
+          for filename in fList:
+             if fnmatch.fnmatch(filename, pattern):
+                fname_ = os.path.join(d,filename)
+                image_paths.append(fname_)
+       print(len(image_paths))
+       return image_paths
 
 
     def load_img_s(self):
