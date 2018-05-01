@@ -53,7 +53,7 @@ class classifier():
         self.root = Tk()
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
-        self.root.geometry('500x300')
+        self.root.geometry('600x400')
         self.label1 = Label(self.root,text='1 = Distorted')
         self.label1.grid(column=0, row=0)
         self.label1 = Label(self.root,text='2 = Nondistorted')
