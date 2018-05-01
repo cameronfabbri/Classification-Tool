@@ -92,6 +92,7 @@ class classifier():
         self.classA_list = [] # [2,5,1]
         self.classA_list = []
 
+        self.paths = []
 
         def classA(event):
             self.img_dict[self.img_list[self.index]]= "0"
@@ -116,11 +117,11 @@ class classifier():
     '''
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
-        paths = self.getPaths(self.path)
+        self.paths = self.getPaths(self.path)
         numImages = len(paths)
         self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
         print('Loading images...')
-        for e,p in enumerate(paths):
+        for e,p in enumerate(self.paths):
             self.features[e, ...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
         print('Done')
 
