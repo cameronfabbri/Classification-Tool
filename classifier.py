@@ -90,7 +90,7 @@ class classifier():
 
         # should contain the index of self.features for what was labeled
         self.classA_list = [] # [2,5,1]
-        self.classA_list = []
+        self.classB_list = []
 
         self.paths = []
 
@@ -146,7 +146,8 @@ class classifier():
         while self.index != len(self.img_list) and self.img_dict[self.img_list[self.index]] != "" :
             self.index +=1
         if self.index < len(self.img_list):
-            im = Image.open(os.path.join(self.path, self.img_list[self.index]))
+            #im = Image.open(os.path.join(self.path, self.img_list[self.index]))
+            im = Image.open(self.paths[self.index])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
