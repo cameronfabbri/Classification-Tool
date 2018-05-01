@@ -146,7 +146,6 @@ class classifier():
        print(len(image_paths))
        return image_paths
 
-
     def load_img_s(self):
         self.img_list = self.getPaths(self.path)
         if os.path.isfile(self.path+'/labels.pkl'):
