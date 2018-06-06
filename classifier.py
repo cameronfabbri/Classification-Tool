@@ -7,23 +7,13 @@ import _pickle as pickle
 import fnmatch
 import numpy as np
 import scipy.misc as misc
-#from sklearn import svm
+from sklearn import svm
+from sklearn.svm import SVC
+import sklearn
 
 # reads in an image as a numpy array
 # a = misc.imread('n01484850_9995.JPEG')
 
-'''
-   TODO in order of importance:
-   x - Have a third button that is a "no class" if we don't want to use that image.
-   -x In the pickle file store class1 and class2 such that the user can set a label
-   so we don't get confused whether 1 is distorted or 2 is distorted. When starting
-   the program for the first time, check if this is set or not. If not, prompt the user
-   to set it, otherwise just load the value and display it on the GUI somewhere.
-   x - load previous pickle file
-   x - Say which class is which for buttons 1 and 2
-   x - drop down box selecting active learning method (current would be 'random')
-   x - max image size so the image doesn't change window size
-'''
 
 # Active learning bit
 '''
@@ -91,23 +81,23 @@ class classifier():
         # should contain the index of self.features for what was labeled
         self.classA_list = [] # [2,5,1]
         self.classB_list = []
-
+        self.index = 1
         self.paths = []
+        self.npy_dict = {}
+        self.model = "r"
 
         def classA(event):
-            self.img_dict[self.img_list[self.index]]= "0"
+            self.classA_list.append(self.index)
             self.getNext()
         def classB(event):
-            self.img_dict[self.img_list[self.index]]= "1"
+            self.classB_list.append(self.index)
             self.getNext()
         def skipClassEvent(event):
-            self.img_dict[self.img_list[self.index]]= "2"
             self.getNext()
         
         self.root.bind(2, classA)
         self.root.bind(1, classB)
         self.root.bind(3, skipClassEvent)
-        self.index = 0
         self.path = '/mnt/data1/'
         mainloop()
 
@@ -117,78 +107,89 @@ class classifier():
     '''
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
+        print(self.path)
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
-        self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
+        #self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
+        self.features = []
         print('Loading images...')
         for e,p in enumerate(self.paths):
-            self.features[e, ...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
+           self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
+        #    self.features[e,...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
+        self.features = np.asarray(self.features)
         print('Done')
+        print(self.features)
+        self.load_img()
+        self.make_npy_dict()
+        print(self.npy_dict)
 
     def choseModel(self, value):
         print('value:',value)
 
+    def get_path(self):
+        return self.paths
+
     # preprocessing
     def func(self,value):
         if value == "Closest":
-            print("do this")
+            self.model = "c"
         elif value == "Farthest":
-            print("do this now")
+            self.model = "f"
+        else:
+            self.model = "r"
 
-    #creates dictionary
+    def make_npy_dict(self):
+        index = 1
+        self.npy_dict = {}
+        for i in self.features:
+           self.npy_dict[index] = i 
+           index +=1
+
+            
+
+    #creates dictionary (1:image)....
+    j = 1
     def make_pic_dict(self):
-        for i in self.img_list:
+        for i in self.paths:
             if i != self.path+'/labels.pkl':
-                self.img_dict[i]= ""
+                i = i.split("/")
+                i = i[len(i)-1]
+                self.img_dict[j]= i
+                j+=1
+
+
 
     #loads image on to the screen using a label
     def load_img(self):
-        while self.index != len(self.img_list) and self.img_dict[self.img_list[self.index]] != "" :
-            self.index +=1
-        if self.index < len(self.img_list):
+        if self.index-1 < len(self.paths):
             #im = Image.open(os.path.join(self.path, self.img_list[self.index]))
-            im = Image.open(self.paths[self.index])
+            im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
 
-    #gets all the image file names from directory
-    #calls for the dictionary to be made
-    #loads first image
+    
     def getPaths(self, data_dir):
        #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
        #for pattern in exts:
-       pattern = '*.JPEG'
+       pattern = '*.jpg'
+       print(os.walk(data_dir))
        for d, s, fList in os.walk(data_dir):
           for filename in fList:
              if fnmatch.fnmatch(filename, pattern):
                 fname_ = os.path.join(d,filename)
                 self.paths.append(fname_)
        print(len(self.paths))
+       print(self.paths)
        return self.paths
 
-    '''
-    def load_img_s(self):
-        self.img_list = self.getPaths(self.path)
-        if os.path.isfile(self.path+'/labels.pkl'):
-            pkl_file = open(self.path+'/labels.pkl', 'rb')
-            self.img_dict = pickle.load(pkl_file)
-        else:
-            self.make_pic_dict()
-        self.load_img()
-
-    #allows user to load any path on computer
-    def get_path(self):
-        self.path = filedialog.askdirectory(initialdir='.')
-        self.load_img_s()
-    '''
 
     #used for testing contents of the
     def print_list(self):
-        if self.img_list == []:
-            print(self.img_list)
+        if self.paths == []:
+            print(self.paths)
         else:
-            for i in self.img_list:
+            for i in self.paths:
                 print(i)
 
     #for testing dictionary contents
@@ -206,25 +207,56 @@ class classifier():
 
     #does not allow user to go past the end of the list
     def getNext(self):
-
         # if there is a trained svm, get next from here, otherwise random
-
-        index = self.index
-        index +=1
-        if index < len(self.img_list):
-            self.index = index
-            self.load_img()
+        if self.model == "r" or (self.classA_list == [] or self.classB_list == []):
+            index = self.index
+            index +=1
+            if index < len(self.paths):
+                self.index = index
+                self.load_img()
 
         # if both lists have contents, train svm here
+        elif self.model == "c":
+            imag_reps = []
+            class_vals = []
+            for i in self.classA_list:
+                imag_reps.append(self.npy_dict[i].flatten())
+                class_vals.append(2)
+            for i in self.classB_list:
+                imag_reps.append(self.npy_dict[i].flatten())
+                class_vals.append(1)
+            clf = SVC()
+            imag_reps = np.asarray(imag_reps)
+            class_vals = np.asarray(class_vals)
+            clf.fit(imag_reps,class_vals)
+            print(clf.decision_function(imag_reps))
+            print(np.argmin(clf.decision_function(imag_reps)))
+            closest = np.argmin(clf.decision_function(imag_reps))
+        elif self.model == "f":
+            imag_reps = []
+            class_vals = []
+            for i in self.classA_list:
+                imag_reps.append(self.npy_dict[i])
+                class_vals.append(2)
+            for i in self.classB_list:
+                imag_reps.append(self.npy_dict[i])
+                class_vals.append(1)
+            clf = SVC()
+            clf.fit(imag_reps,class_vals)
+            print(clf.decision_function(imag_reps))
+            print(np.argmax(clf.decision_function(imag_reps)))
+            farthest = np.argmax(clf.decision_function(imag_reps))
+            
+            
 
     #happens each time the user presses quit
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
-        pkl = open(self.path+'/labels.pkl', 'wb')
-        data = pickle.dumps(self.img_dict)
-        pkl.write(data)
-        pkl.close()
+        #pkl = open(self.path+'/labels.pkl', 'wb')
+        #data = pickle.dumps(self.img_dict)
+        #pkl.write(data)
+        #pkl.close()
         self.root.destroy()
 
 
