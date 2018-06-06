@@ -9,4 +9,5 @@ clf = SVC()
 clf.fit(X,y)
 
 print(clf.decision_function(X))
+print(np.argmax(clf.decision_function(X)))
 
