@@ -118,10 +118,10 @@ class classifier():
         #    self.features[e,...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
         self.features = np.asarray(self.features)
         print('Done')
-        print(self.features)
+        #print(self.features)
         self.load_img()
         self.make_npy_dict()
-        print(self.npy_dict)
+        #print(self.npy_dict)
 
     def choseModel(self, value):
         print('value:',value)
@@ -141,11 +141,21 @@ class classifier():
     def make_npy_dict(self):
         index = 1
         self.npy_dict = {}
+
         for i in self.features:
-           self.npy_dict[index] = i 
+           self.npy_dict[index] = i.flatten() 
            index +=1
 
-            
+    def get_unclassified(self):
+        unclass = []
+        indexes = []
+        for i in self.npy_dict:
+            if i not in self.classA_list and i not in self.classB_list:
+                unclass.append(self.npy_dict[i])
+                indexes.append(i)
+        return unclass,indexes
+
+ 
 
     #creates dictionary (1:image)....
     j = 1
@@ -168,6 +178,7 @@ class classifier():
             self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
 
+
     
     def getPaths(self, data_dir):
        #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
@@ -184,14 +195,7 @@ class classifier():
        return self.paths
 
 
-    #used for testing contents of the
-    def print_list(self):
-        if self.paths == []:
-            print(self.paths)
-        else:
-            for i in self.paths:
-                print(i)
-
+  
     #for testing dictionary contents
     def print_dict(self):
         for i in list(self.img_dict.keys()):
@@ -220,32 +224,24 @@ class classifier():
             imag_reps = []
             class_vals = []
             for i in self.classA_list:
-                imag_reps.append(self.npy_dict[i].flatten())
+                imag_reps.append(self.npy_dict[i])
                 class_vals.append(2)
             for i in self.classB_list:
-                imag_reps.append(self.npy_dict[i].flatten())
+                imag_reps.append(self.npy_dict[i])
                 class_vals.append(1)
             clf = SVC()
             imag_reps = np.asarray(imag_reps)
             class_vals = np.asarray(class_vals)
+            unclass_vals,indexes = self.get_unclassified()
+            unclass_vals = np.asarray(unclass_vals)
             clf.fit(imag_reps,class_vals)
-            print(clf.decision_function(imag_reps))
-            print(np.argmin(clf.decision_function(imag_reps)))
-            closest = np.argmin(clf.decision_function(imag_reps))
-        elif self.model == "f":
-            imag_reps = []
-            class_vals = []
-            for i in self.classA_list:
-                imag_reps.append(self.npy_dict[i])
-                class_vals.append(2)
-            for i in self.classB_list:
-                imag_reps.append(self.npy_dict[i])
-                class_vals.append(1)
-            clf = SVC()
-            clf.fit(imag_reps,class_vals)
-            print(clf.decision_function(imag_reps))
-            print(np.argmax(clf.decision_function(imag_reps)))
-            farthest = np.argmax(clf.decision_function(imag_reps))
+            print(unclass_vals)
+            print(clf.decision_function(unclass_vals))
+            print(np.argmin(clf.decision_function(unclass_vals)))
+            closest = np.argmin(clf.decision_function(unclass_vals))
+            self.index = indexes[closest]
+            self.load_img()
+          
             
             
 
