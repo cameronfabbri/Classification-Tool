@@ -10,7 +10,7 @@ import scipy.misc as misc
 from sklearn import svm
 from sklearn.svm import SVC
 import sklearn
-
+from random import shuffle
 # reads in an image as a numpy array
 # a = misc.imread('n01484850_9995.JPEG')
 
@@ -116,6 +116,7 @@ class classifier():
         self.features = []
         print('Loading images...')
         for e,p in enumerate(self.paths):
+           print(p)
            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
         #    self.features[e,...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
         self.features = np.asarray(self.features)
@@ -195,6 +196,7 @@ class classifier():
                         self.paths.append(fname_)
         print(len(self.paths))
         print(self.paths)
+        shuffle(self.paths)
         return self.paths
 
 
@@ -267,16 +269,12 @@ class classifier():
             for i in self.classB_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(1)
-            clf = SVC()
             imag_reps = np.asarray(imag_reps)
             class_vals = np.asarray(class_vals)
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
-            clf.fit(imag_reps,class_vals)
-            print(unclass_vals)
-            print(clf.decision_function(unclass_vals))
-            print(np.argmax(clf.decision_function(unclass_vals)))
-            farthest = np.argmax(clf.decision_function(unclass_vals))
+            self.clf.fit(imag_reps,class_vals)
+            farthest = np.argmax(self.clf.decision_function(unclass_vals))
             self.index = indexes[farthest]
             self.load_img()
           
