@@ -95,6 +95,7 @@ class classifier():
             self.getNext()
         def skipClassEvent(event):
             self.getNext()
+            del self.npy_dict[self.index]
         
         self.root.bind(2, classA)
         self.root.bind(1, classB)
@@ -109,6 +110,7 @@ class classifier():
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
         print(self.path)
+        self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
         print(numImages)
@@ -208,11 +210,26 @@ class classifier():
 
     #does not allow user to go back past the beginning the list of images
     def getPrev(self):
-        index = self.index
-        index -=1
-        if index > -1:
-            self.index = index
+        if self.model == 'r' or (self.classA_list == [] or self.classB_list == []):
+            index = self.index
+            index -=1
+            if index > 0:
+                self.index = index
+                self.load_img()
+            if self.index in self.classA_list:
+                self.classA_list.remove(self.index)
+            else:
+                self.classB_list.remove(self.index)
+        elif self.model == "c" or self.model == "f":
+            self.index = self.prev
             self.load_img()
+            if self.index in self.classA_list:
+                self.classA_list.remove(self.index)
+            else:
+                self.classB_list.remove(self.index)
+
+
+
 
     #does not allow user to go past the end of the list
     def getNext(self):
@@ -226,6 +243,7 @@ class classifier():
 
         # if both lists have contents, train svm here
         elif self.model == "c":
+            self.prev = self.index
             imag_reps = []
             class_vals = []
             print("A:",self.classA_list)
@@ -263,6 +281,7 @@ class classifier():
         else:
             imag_reps = []
             class_vals = []
+            self.prev = self.index
             for i in self.classA_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(2)
