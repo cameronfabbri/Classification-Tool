@@ -59,7 +59,7 @@ class classifier():
         self.prev.grid(column = 1, row = 5)
         self.load = Button(self.root,text = "Load", command = self.loadImages)
         self.load.grid(column = 4, row = 5)
-        self.label = Label(text= "No Image Loaded",height = 15, width = 15)
+        self.label = Label(text = "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
@@ -141,8 +141,8 @@ class classifier():
     def make_npy_dict(self):
         index = 1
         self.npy_dict = {}
-
         for i in self.features:
+           print(i)
            self.npy_dict[index] = i.flatten() 
            index +=1
 
@@ -241,6 +241,27 @@ class classifier():
             closest = np.argmin(clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
+        else:
+            imag_reps = []
+            class_vals = []
+            for i in self.classA_list:
+                imag_reps.append(self.npy_dict[i])
+                class_vals.append(2)
+            for i in self.classB_list:
+                imag_reps.append(self.npy_dict[i])
+                class_vals.append(1)
+            clf = SVC()
+            imag_reps = np.asarray(imag_reps)
+            class_vals = np.asarray(class_vals)
+            unclass_vals,indexes = self.get_unclassified()
+            unclass_vals = np.asarray(unclass_vals)
+            clf.fit(imag_reps,class_vals)
+            print(unclass_vals)
+            print(clf.decision_function(unclass_vals))
+            print(np.argmax(clf.decision_function(unclass_vals)))
+            farthest = np.argmax(clf.decision_function(unclass_vals))
+            self.index = indexes[farthest]
+            self.load_img()
           
             
             
@@ -249,11 +270,15 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
-        #pkl = open(self.path+'/labels.pkl', 'wb')
-        #data = pickle.dumps(self.img_dict)
-        #pkl.write(data)
-        #pkl.close()
-        self.root.destroy()
+#        pkl = open(self.path+'/labels.pkl', 'wb')
+#        data = pickle.dumps(self.npy_dict)
+#        pkl.write(data)
+#        data = pickle.dumps(self.classA_list)
+#        pkl.write(data)
+#        data = pickle.dumps(self.classB_list)
+#        pkl.write(data)
+#        pkl.close()
+#        self.root.destroy()
 
 
 
