@@ -85,6 +85,7 @@ class classifier():
         self.paths = []
         self.npy_dict = {}
         self.model = "r"
+        self.clf = SVC(kernel='linear')
 
         def classA(event):
             self.classA_list.append(self.index)
@@ -110,6 +111,7 @@ class classifier():
         print(self.path)
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
+        print(numImages)
         #self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
         self.features = []
         print('Loading images...')
@@ -122,7 +124,9 @@ class classifier():
         self.load_img()
         self.make_npy_dict()
         #print(self.npy_dict)
-
+        
+        
+     
     def choseModel(self, value):
         print('value:',value)
 
@@ -181,18 +185,17 @@ class classifier():
 
     
     def getPaths(self, data_dir):
-       #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
-       #for pattern in exts:
-       pattern = '*.JPEG'
-       print(os.walk(data_dir))
-       for d, s, fList in os.walk(data_dir):
-          for filename in fList:
-             if fnmatch.fnmatch(filename, pattern):
-                fname_ = os.path.join(d,filename)
-                self.paths.append(fname_)
-       print(len(self.paths))
-       print(self.paths)
-       return self.paths
+        exts = ['*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
+        for pattern in exts:
+            print(os.walk(data_dir))
+            for d, s, fList in os.walk(data_dir):
+                for filename in fList:
+                    if fnmatch.fnmatch(filename, pattern):
+                        fname_ = os.path.join(d,filename)
+                        self.paths.append(fname_)
+        print(len(self.paths))
+        print(self.paths)
+        return self.paths
 
 
   
@@ -223,27 +226,36 @@ class classifier():
         elif self.model == "c":
             imag_reps = []
             class_vals = []
+            print("A:",self.classA_list)
+            print("B:",self.classB_list)
             for i in self.classA_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(2)
             for i in self.classB_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(1)
-            clf = SVC()
             imag_reps = np.asarray(imag_reps)
             class_vals = np.asarray(class_vals)
             unclass_vals,indexes = self.get_unclassified()
+            print(indexes)
             unclass_vals = np.asarray(unclass_vals)
-            clf.fit(imag_reps,class_vals)
-            print(unclass_vals[0])
+            self.clf.fit(imag_reps,class_vals)
+            print(self.clf.fit(imag_reps,class_vals))
+            print("predicted",self.clf.predict(unclass_vals))
+            print(unclass_vals)
+            print(len(unclass_vals))
+            print("image reps:",imag_reps)
+            print("class reps", class_vals)
+            #print(unclass_vals[0])
             print('--------------')
-            print(unclass_vals[1])
+            #print(unclass_vals[1])
             print('--')
-            print(np.linalg.norm(unclass_vals[0]-unclass_vals[1]))
-            print(clf.decision_function(unclass_vals))
-            exit()
+            if len(unclass_vals) > 1:
+                print(np.linalg.norm(unclass_vals[0]-unclass_vals[1]))
+            print(self.clf.decision_function(unclass_vals))
+            #exit()
             #print(np.argmin(clf.decision_function(unclass_vals)))
-            closest = np.argmin(clf.decision_function(unclass_vals))
+            closest = np.argmin(self.clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
         else:
