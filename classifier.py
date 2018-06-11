@@ -183,7 +183,7 @@ class classifier():
     def getPaths(self, data_dir):
        #exts = ['*.JPG','*.jpg','*.JPEG','*.png','*.PNG']
        #for pattern in exts:
-       pattern = '*.jpg'
+       pattern = '*.JPEG'
        print(os.walk(data_dir))
        for d, s, fList in os.walk(data_dir):
           for filename in fList:
@@ -235,9 +235,14 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             clf.fit(imag_reps,class_vals)
-            print(unclass_vals)
+            print(unclass_vals[0])
+            print('--------------')
+            print(unclass_vals[1])
+            print('--')
+            print(np.linalg.norm(unclass_vals[0]-unclass_vals[1]))
             print(clf.decision_function(unclass_vals))
-            print(np.argmin(clf.decision_function(unclass_vals)))
+            exit()
+            #print(np.argmin(clf.decision_function(unclass_vals)))
             closest = np.argmin(clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
