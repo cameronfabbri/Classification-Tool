@@ -278,7 +278,7 @@ class classifier():
 #        data = pickle.dumps(self.classB_list)
 #        pkl.write(data)
 #        pkl.close()
-#        self.root.destroy()
+         self.root.destroy()
 
 
 
