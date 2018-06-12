@@ -11,6 +11,17 @@ from sklearn import svm
 from sklearn.svm import SVC
 import sklearn
 from random import shuffle
+import scipy.misc as misc
+import pickle
+import tensorflow as tf
+from tqdm import tqdm
+import argparse
+import sys
+import os
+import load_features as load
+from compute_features import compute_img_features
+from load_features import load_img_features
+
 # reads in an image as a numpy array
 # a = misc.imread('n01484850_9995.JPEG')
 
@@ -35,6 +46,8 @@ from random import shuffle
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
 # pkl_file = open(sys.argv[1], 'rb')
 # a = pickle.load(pkl_file)
+
+
 
 class classifier():
 
@@ -65,7 +78,7 @@ class classifier():
         self.noclass.grid(column = 5, row = 5)
         choices = {'Random','Closest', 'Farthest'}
         modelChoices = {'pixels', 'inception-v1', 'inception-v2'}
-
+        
         self.dropVar = StringVar()
         self.modelVar = StringVar()
         self.dropVar.set("random")   #default
@@ -85,7 +98,10 @@ class classifier():
         self.paths = []
         self.npy_dict = {}
         self.model = "r"
+        self.type = "pixel"
         self.clf = SVC(kernel='linear')
+        self.feats = None
+        global path
 
         def classA(event):
             self.classA_list.append(self.index)
@@ -131,8 +147,26 @@ class classifier():
         
      
     def choseModel(self, value):
-        print('value:',value)
+        if value == 'inception-v1':
+            self.type = "inception_v1"
+            type = self.type
+            path = self.paths
+            compute_img_features(type, path)
+            self.feats = load_img_features(type)
+            self.remake_npy_dict(self.feats)
+        else:
+            print("Not implemented Yet!")
 
+    def remake_npy_dict(self,new):
+        index = 1
+        for i in new:
+            self.npy_dict[index] = new[i]
+            index +=1
+        print(self.npy_dict)
+            
+    def getType(self):
+        return self.type
+    
     def get_path(self):
         return self.paths
 
@@ -202,11 +236,6 @@ class classifier():
         return self.paths
 
 
-  
-    #for testing dictionary contents
-    def print_dict(self):
-        for i in list(self.img_dict.keys()):
-            print(i,":",self.img_dict[i])
 
     #does not allow user to go back past the beginning the list of images
     def getPrev(self):
@@ -246,8 +275,6 @@ class classifier():
             self.prev = self.index
             imag_reps = []
             class_vals = []
-            print("A:",self.classA_list)
-            print("B:",self.classB_list)
             for i in self.classA_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(2)
@@ -257,31 +284,16 @@ class classifier():
             imag_reps = np.asarray(imag_reps)
             class_vals = np.asarray(class_vals)
             unclass_vals,indexes = self.get_unclassified()
-            print(indexes)
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
-            print(self.clf.fit(imag_reps,class_vals))
-            print("predicted",self.clf.predict(unclass_vals))
-            print(unclass_vals)
-            print(len(unclass_vals))
-            print("image reps:",imag_reps)
-            print("class reps", class_vals)
-            #print(unclass_vals[0])
-            print('--------------')
-            #print(unclass_vals[1])
-            print('--')
-            if len(unclass_vals) > 1:
-                print(np.linalg.norm(unclass_vals[0]-unclass_vals[1]))
             print(self.clf.decision_function(unclass_vals))
-            #exit()
-            #print(np.argmin(clf.decision_function(unclass_vals)))
             closest = np.argmin(self.clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
         else:
+            self.prev = self.index
             imag_reps = []
             class_vals = []
-            self.prev = self.index
             for i in self.classA_list:
                 imag_reps.append(self.npy_dict[i])
                 class_vals.append(2)
@@ -293,10 +305,11 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
+            print(self.clf.decision_function(unclass_vals))
             farthest = np.argmax(self.clf.decision_function(unclass_vals))
             self.index = indexes[farthest]
             self.load_img()
-          
+
             
             
 
@@ -318,3 +331,7 @@ class classifier():
 
 
 c = classifier()
+
+
+
+
