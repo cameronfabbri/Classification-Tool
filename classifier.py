@@ -72,7 +72,7 @@ class classifier():
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
         choices = {'Random','Closest', 'Farthest'}
-        modelChoices = {'pixels', 'inception_v1', 'inception_v2'}
+        modelChoices = ['pixels', 'inception_v1', 'inception_v2', 'inception_v3', 'inception_resnet_v2', 'resnet_v1_50', 'resnet_v1_101', 'vgg_16', 'vgg_19']
         
         self.dropVar = StringVar()
         self.modelVar = StringVar()
