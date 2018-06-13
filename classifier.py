@@ -309,6 +309,7 @@ class classifier():
                 d[i] = 2
             else:
                 d[i] = 1
+            index +=1
         print(d)
 #        pkl = open(self.path+'/labels.pkl', 'wb')
 #        data = pickle.dumps(d)
