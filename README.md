@@ -8,6 +8,7 @@ Download one of the checkpoint files below, for example [Inception V1](http://do
 tar -xvf inception_v1_2016_08_28.tar.gz
 ```
 
+The output will be in `inception_v1_features.pkl`, which contains a dictionary of the form {image_path:feature}.
 
 Model | TF-Slim File | Checkpoint | Top-1 Accuracy| Top-5 Accuracy |
 :----:|:------------:|:----------:|:-------:|:--------:|
