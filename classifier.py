@@ -22,10 +22,6 @@ import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
 
-# reads in an image as a numpy array
-# a = misc.imread('n01484850_9995.JPEG')
-
-
 # Active learning bit
 '''
    http://scikit-learn.org/stable/modules/svm.html
@@ -46,8 +42,6 @@ from load_features import load_img_features
 # this is how you load a pickle file. 'a' is then the dictionary that we saved
 # pkl_file = open(sys.argv[1], 'rb')
 # a = pickle.load(pkl_file)
-
-
 
 class classifier():
 
@@ -305,7 +299,6 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
-            #print(self.clf.decision_function(unclass_vals))
             farthest = np.argmax(self.clf.decision_function(unclass_vals))
             self.index = indexes[farthest]
             self.load_img()
