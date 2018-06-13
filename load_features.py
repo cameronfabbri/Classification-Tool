@@ -15,7 +15,7 @@ import pickle
 def load_img_features(model):
     with open(model+'_features.pkl', 'rb') as pickle_file:
         features = pickle.load(pickle_file)
-    for image, feature in features.items():
+    #for image, feature in features.items():
         #print(image, ':', feature)
     return features
 
