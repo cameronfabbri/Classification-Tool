@@ -302,15 +302,19 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
+        d = {}
+        index = 1
+        for i in self.paths:
+            if index in self.classA_list:
+                d[i] = 2
+            else:
+                d[i] = 1
+        print(d)
 #        pkl = open(self.path+'/labels.pkl', 'wb')
-#        data = pickle.dumps(self.npy_dict)
-#        pkl.write(data)
-#        data = pickle.dumps(self.classA_list)
-#        pkl.write(data)
-#        data = pickle.dumps(self.classB_list)
-#        pkl.write(data)
+#        data = pickle.dumps(d)
+#        pkl.write(data)t)
 #        pkl.close()
-         self.root.destroy()
+        self.root.destroy()
 
 
 
