@@ -17,7 +17,8 @@ import tensorflow as tf
 from tqdm import tqdm
 import argparse
 import sys
-import os
+from os import listdir
+from os.path import isfile, join
 import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
@@ -71,7 +72,7 @@ class classifier():
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 5, row = 5)
         choices = {'Random','Closest', 'Farthest'}
-        modelChoices = {'pixels', 'inception-v1', 'inception-v2'}
+        modelChoices = {'pixels', 'inception_v1', 'inception_v2'}
         
         self.dropVar = StringVar()
         self.modelVar = StringVar()
@@ -119,44 +120,41 @@ class classifier():
     '''
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
-        #print(self.path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
-        #print(numImages)
-        #self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
         self.features = []
         print('Loading images...')
         for e,p in enumerate(self.paths):
-           #print(p)
            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
-        #    self.features[e,...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
         self.features = np.asarray(self.features)
         print('Done')
-        #print(self.features)
         self.load_img()
         self.make_npy_dict()
-        #print(self.npy_dict)
         
         
      
     def choseModel(self, value):
-        if value == 'inception-v1':
-            self.type = "inception_v1"
-            type = self.type
-            path = self.paths
-            compute_img_features(type, path)
-            self.feats = load_img_features(type)
-            self.remake_npy_dict(self.feats)
-        else:
-            print("Not implemented Yet!")
+        type = value
+        path = self.paths
+        cwd = os.getcwd()
+        files_in_cwd = [f for f in listdir(cwd) if isfile(join(cwd, f))]
+        for i in files_in_cwd:
+            if value in i and ".pkl" in i:
+                self.feats = load_img_features(type)
+                self.remake_npy_dict(self.feats)
+                print("Images Reloaded")
+                return
+        compute_img_features(type, path)
+        self.feats = load_img_features(type)
+        self.remake_npy_dict(self.feats)
+        return
 
     def remake_npy_dict(self,new):
         index = 1
         for i in new:
             self.npy_dict[index] = new[i]
             index +=1
-        #print(self.npy_dict)
             
     def getType(self):
         return self.type
@@ -177,7 +175,6 @@ class classifier():
         index = 1
         self.npy_dict = {}
         for i in self.features:
-           #print(i)
            self.npy_dict[index] = i.flatten() 
            index +=1
 
@@ -207,7 +204,6 @@ class classifier():
     #loads image on to the screen using a label
     def load_img(self):
         if self.index-1 < len(self.paths):
-            #im = Image.open(os.path.join(self.path, self.img_list[self.index]))
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
@@ -218,14 +214,11 @@ class classifier():
     def getPaths(self, data_dir):
         exts = ['*.JPEG','*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
         for pattern in exts:
-            #print(os.walk(data_dir))
             for d, s, fList in os.walk(data_dir):
                 for filename in fList:
                     if fnmatch.fnmatch(filename, pattern):
                         fname_ = os.path.join(d,filename)
                         self.paths.append(fname_)
-        #print(len(self.paths))
-        #print(self.paths)
         shuffle(self.paths)
         return self.paths
 
@@ -280,7 +273,6 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
-            #print(self.clf.decision_function(unclass_vals))
             closest = np.argmin(self.clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
