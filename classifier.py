@@ -125,16 +125,16 @@ class classifier():
     '''
     def loadImages(self):
         self.path = filedialog.askdirectory(initialdir='.')
-        print(self.path)
+        #print(self.path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
-        print(numImages)
+        #print(numImages)
         #self.features = np.empty((numImages, self.width, self.height, 3), dtype=np.float32)
         self.features = []
         print('Loading images...')
         for e,p in enumerate(self.paths):
-           print(p)
+           #print(p)
            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
         #    self.features[e,...] = misc.imresize(misc.imread(p), (self.height, self.width, 3))
         self.features = np.asarray(self.features)
@@ -162,7 +162,7 @@ class classifier():
         for i in new:
             self.npy_dict[index] = new[i]
             index +=1
-        print(self.npy_dict)
+        #print(self.npy_dict)
             
     def getType(self):
         return self.type
@@ -183,7 +183,7 @@ class classifier():
         index = 1
         self.npy_dict = {}
         for i in self.features:
-           print(i)
+           #print(i)
            self.npy_dict[index] = i.flatten() 
            index +=1
 
@@ -222,16 +222,16 @@ class classifier():
 
     
     def getPaths(self, data_dir):
-        exts = ['*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
+        exts = ['*.JPEG','*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
         for pattern in exts:
-            print(os.walk(data_dir))
+            #print(os.walk(data_dir))
             for d, s, fList in os.walk(data_dir):
                 for filename in fList:
                     if fnmatch.fnmatch(filename, pattern):
                         fname_ = os.path.join(d,filename)
                         self.paths.append(fname_)
-        print(len(self.paths))
-        print(self.paths)
+        #print(len(self.paths))
+        #print(self.paths)
         shuffle(self.paths)
         return self.paths
 
@@ -286,7 +286,7 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
-            print(self.clf.decision_function(unclass_vals))
+            #print(self.clf.decision_function(unclass_vals))
             closest = np.argmin(self.clf.decision_function(unclass_vals))
             self.index = indexes[closest]
             self.load_img()
@@ -305,7 +305,7 @@ class classifier():
             unclass_vals,indexes = self.get_unclassified()
             unclass_vals = np.asarray(unclass_vals)
             self.clf.fit(imag_reps,class_vals)
-            print(self.clf.decision_function(unclass_vals))
+            #print(self.clf.decision_function(unclass_vals))
             farthest = np.argmax(self.clf.decision_function(unclass_vals))
             self.index = indexes[farthest]
             self.load_img()
