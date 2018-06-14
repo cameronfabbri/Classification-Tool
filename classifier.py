@@ -22,6 +22,7 @@ from os.path import isfile, join
 import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
+import time
 
 # Active learning bit
 '''
@@ -96,7 +97,7 @@ class classifier():
         self.paths = []
         self.npy_dict = {}
         self.model = "r"
-        self.type = "pixel"
+        self.type = "None"
         self.clf = SVC(kernel='linear')
         self.feats = None
         self.full_paths= []
@@ -129,22 +130,22 @@ class classifier():
         self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
-        self.features = []
+        self.make_pic_dict()
+
+        
+    def load_pix_features(self):
+        self.features =[]
         print('Loading images...')
         for e,p in enumerate(self.paths):
-           self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
+            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
         self.features = np.asarray(self.features)
         print('Done')
-        self.make_pic_dict()
         self.check_and_reload()
-        self.load_img()
         self.make_npy_dict()
-        
-        
-        
+        self.load_img()
      
     def choseModel(self, value):
-        if self.classA_list == [] and self.classB_list == []:
+        if self.classA_list == [] and self.classB_list == [] and value!= 'pixels':
             type = value
             path = self.paths
             cwd = os.getcwd()
@@ -154,13 +155,16 @@ class classifier():
                     self.feats = load_img_features(type)
                     self.remake_npy_dict(self.feats)
                     print("Images Reloaded")
-                    return
+                    break
+            print('Loading images...')
             compute_img_features(type, path)
+            print('Done')
             self.feats = load_img_features(type)
             self.remake_npy_dict(self.feats)
-            return
+            self.load_img()
         else:
-            print("Image Classification in Process, Cannot change models")
+            self.load_pix_features()
+
 
     def remake_npy_dict(self,new):
         index = 1
@@ -233,10 +237,11 @@ class classifier():
 
     #loads image on to the screen using a label
     def load_img(self):
-        if self.index-1 < len(self.paths):
+        print(self.index)
+        if self.index -1 < len(self.paths):
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
-            self.label.config(text = "",image=photo, height = self.height, width = self.width)
+            self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
         else:
             print("Image Index out of range")
