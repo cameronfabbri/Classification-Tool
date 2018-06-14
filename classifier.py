@@ -236,7 +236,7 @@ class classifier():
         if self.index-1 < len(self.paths):
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
-            self.label.config(image=photo, height = self.height, width = self.width)
+            self.label.config(text = "",image=photo, height = self.height, width = self.width)
             self.label.image = photo
         else:
             print("Image Index out of range")
