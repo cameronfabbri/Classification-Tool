@@ -26,7 +26,7 @@ slim = tf.contrib.slim
    Recursively obtains all images in the directory specified
 
 '''
-def compute_img_features(model,paths):
+def compute_img_features(model,paths,init_dir):
    # I only have these because I thought some take in size of (299,299), but maybe not
    if 'inception' in model: height, width, channels = 224, 224, 3
    if 'resnet' in model:    height, width, channels = 224, 224, 3
@@ -110,7 +110,7 @@ def compute_img_features(model,paths):
 
 #try: os.makedirs('features/')
 #except: pass
-   exp_pkl = open(model+'_features.pkl', 'wb')
+   exp_pkl = open(init_dir + '/'+model+'_features.pkl', 'wb')
    data = pickle.dumps(feat_dict)
    exp_pkl.write(data)
    exp_pkl.close()

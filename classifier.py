@@ -150,19 +150,18 @@ class classifier():
         if self.classA_list == [] and self.classB_list == [] and value!= 'pixels':
             type = value
             path = self.paths
-            cwd = os.getcwd()
-            files_in_cwd = [f for f in listdir(cwd) if isfile(join(cwd, f))]
-            for i in files_in_cwd:
-                if value in i and ".pkl" in i:
-                    self.feats = load_img_features(type)
+            for i in self.full_paths:
+                if value in i :
+                    self.feats = load_img_features(type,self.path)
                     self.remake_npy_dict(self.feats)
                     print("Images Reloaded")
                     break
-            print('Loading images...')
-            compute_img_features(type, path)
-            print('Done')
-            self.feats = load_img_features(type)
-            self.remake_npy_dict(self.feats)
+            if self.feats == None:
+                print('Loading images...')
+                compute_img_features(type, path,self.path)
+                print('Done')
+                self.feats = load_img_features(type,self.path)
+                self.remake_npy_dict(self.feats)
             self.load_img()
         else:
             self.load_pix_features()
@@ -239,7 +238,6 @@ class classifier():
 
     #loads image on to the screen using a label
     def load_img(self):
-        print(self.index)
         if self.index -1 < len(self.paths):
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
