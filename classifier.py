@@ -87,6 +87,9 @@ class classifier():
         self.option_menu1.grid(row = 6, column = 0)
         self.option_menu2.grid(row = 8, column = 0)
 
+        try: self.initial_path = sys.argv[1]
+        except: self.initial_path='./'
+
         # should contain the index of self.features for what was labeled
         self.classA_list = [] # [2,5,1]
         self.classB_list = []
@@ -126,12 +129,11 @@ class classifier():
         When using features, instead of reading images this will use the feature vector
     '''
     def loadImages(self):
-        self.path = filedialog.askdirectory(initialdir='.')
+        self.path = filedialog.askdirectory(initialdir=self.initial_path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
         self.make_pic_dict()
-
         
     def load_pix_features(self):
         self.features =[]

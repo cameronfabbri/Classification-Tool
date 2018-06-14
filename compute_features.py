@@ -100,7 +100,12 @@ def compute_img_features(model,paths):
       image = misc.imread(path)
       image = misc.imresize(image, (height, width))
       image = np.expand_dims(image, 0)
-      feat = np.squeeze(sess.run(features, feed_dict={x:image}))
+      try: feat = np.squeeze(sess.run(features, feed_dict={x:image}))
+      except:
+         print('Could not compute feature for',path,'....deleting')
+         try: os.remove(path)
+         except: continue
+         continue
       feat_dict[path] = feat
 
 #try: os.makedirs('features/')
