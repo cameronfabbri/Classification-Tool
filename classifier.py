@@ -93,8 +93,7 @@ class classifier():
         # should contain the index of self.features for what was labeled
         self.classA_list = [] # [2,5,1]
         self.classB_list = []
-        self.skipped = 0
-        self.classified = 0
+        self.skipped = []
         self.index = 1
         self.img_dict = {}
         self.paths = []
@@ -104,19 +103,22 @@ class classifier():
         self.clf = SVC(kernel='linear')
         self.feats = None
         self.full_paths= []
+        self.numImages = 0
 
         def classA(event):
-            self.classified +=1
             self.classA_list.append(self.index)
             self.getNext()
         def classB(event):
-            self.classified
             self.classB_list.append(self.index)
             self.getNext()
         def skipClassEvent(event):
-            self.skipped +=1
-            self.getNext()
-            del self.npy_dict[self.index]
+            self.skipped.append(self.index)
+            self.img_dict = self.delete_item(self.img_dict,self.index)
+            self.npy_dict = self.delete_item(self.npy_dict,self.index)
+            self.index = 1
+            while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
+                self.index +=1
+            self.load_img()
         
         self.root.bind(2, classA)
         self.root.bind(1, classB)
@@ -132,9 +134,18 @@ class classifier():
         self.path = filedialog.askdirectory(initialdir=self.initial_path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
-        numImages = len(self.paths)
+        #numImages = len(self.paths)
 #       self.make_pic_dict()
 
+    def delete_item(self,d,item):
+        new = {}
+        for i in d:
+            #print(i)
+            if  i != item:
+                new[i] = d[i]
+        return new
+
+    
 
 #    def load_pix_features(self):
 #        self.features =[]
@@ -172,12 +183,14 @@ class classifier():
     def remake_npy_dict(self,new):
         index = 1
         self.paths = []
+        self.npy_dict = {}
         self.img_dict = {}
         for i in new:
             self.paths.append(i)
             self.img_dict[index] = i
             self.npy_dict[index] = new[i]
             index +=1
+        self.numImages = len(self.paths)
 
     def check_and_reload(self):
         for i in self.full_paths:
@@ -222,7 +235,7 @@ class classifier():
         unclass = []
         indexes = []
         for i in self.npy_dict:
-            if i not in self.classA_list and i not in self.classB_list:
+            if i not in self.classA_list and i not in self.classB_list and i not in self.skipped:
                 unclass.append(self.npy_dict[i])
                 indexes.append(i)
         return unclass,indexes
@@ -322,6 +335,9 @@ class classifier():
                 unclass_vals,indexes = self.get_unclassified()
                 unclass_vals = np.asarray(unclass_vals)
                 self.clf.fit(imag_reps,class_vals)
+                if unclass_vals.shape[0] == 1:
+                    print("here")
+                    unclass_vals = unclass_vals.reshape(-1,1)
                 closest = np.argmin(self.clf.decision_function(unclass_vals))
                 self.index = indexes[closest]
                 self.load_img()
@@ -344,7 +360,7 @@ class classifier():
                 self.index = indexes[farthest]
                 self.load_img()
         else:
-            print("All Images have been Classified\nNumber of images skipped:",self.skipped,"\nNumber of images classified:", self.classified)
+            print("All Images have been Classified")
 
     
 #    def test(self):
