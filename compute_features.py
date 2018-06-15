@@ -97,7 +97,10 @@ def compute_img_features(model,paths,init_dir):
    #paths = c.path
    print('Computing features...')
    for path in tqdm(paths):
-      image = misc.imread(path)
+      try: image = misc.imread(path)
+      except:
+         print('Could not open image',path)
+         continue
       image = misc.imresize(image, (height, width))
       image = np.expand_dims(image, 0)
       try: feat = np.squeeze(sess.run(features, feed_dict={x:image}))
