@@ -23,6 +23,8 @@ import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
 import time
+from tkinter import ttk
+
 
 # Active learning bit
 '''
@@ -53,6 +55,9 @@ class classifier():
         self.height = 256
         self.img_list = []
         self.root = Tk()
+        self.root.style = ttk.Style()
+        #('clam', 'alt', 'default', 'classic')
+        self.root.style.theme_use("alt")
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
         self.root.geometry('600x400')
