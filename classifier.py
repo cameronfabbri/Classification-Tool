@@ -133,19 +133,20 @@ class classifier():
         self.prev = -1
         self.paths = self.getPaths(self.path)
         numImages = len(self.paths)
-        self.make_pic_dict()
-        
-    def load_pix_features(self):
-        self.features =[]
-        print('Loading images...')
-        for e,p in enumerate(self.paths):
-            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
-        self.features = np.asarray(self.features)
-        print('Done')
-        self.check_and_reload()
-        self.make_npy_dict()
-        self.load_img()
-     
+#       self.make_pic_dict()
+
+
+#    def load_pix_features(self):
+#        self.features =[]
+#        print('Loading images...')
+#        for e,p in enumerate(self.paths):
+#            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
+#        self.features = np.asarray(self.features)
+#        print('Done')
+#        self.check_and_reload()
+#        self.make_npy_dict()
+#        self.load_img()
+
     def choseModel(self, value):
         if self.classA_list == [] and self.classB_list == [] and value!= 'pixels':
             type = value
@@ -153,39 +154,30 @@ class classifier():
             for i in self.full_paths:
                 if value in i:
                     self.feats = load_img_features(type,self.path)
-                    if len(self.feats) < len(self.paths):
-                        self.feats = None
-                        break
-                    else:
-                        self.remake_npy_dict(self.feats)
-                        print("Images Reloaded")
-                        break
+                    self.remake_npy_dict(self.feats)
+                    print("Images Reloaded")
+                    break
             if self.feats == None:
                 print('Loading images...')
                 compute_img_features(type, path,self.path)
                 print('Done')
                 self.feats = load_img_features(type,self.path)
                 self.remake_npy_dict(self.feats)
+            self.check_and_reload()
             self.load_img()
-        else:
-            self.load_pix_features()
+#        else:
+#            self.load_pix_features()
 
 
     def remake_npy_dict(self,new):
         index = 1
+        self.paths = []
         self.img_dict = {}
         for i in new:
+            self.paths.append(i)
             self.img_dict[index] = i
             self.npy_dict[index] = new[i]
             index +=1
-        print(self.img_dict)
-            
-    def getType(self):
-        return self.type
-    
-    def get_path(self):
-        return self.paths
-
 
     def check_and_reload(self):
         for i in self.full_paths:
@@ -199,10 +191,14 @@ class classifier():
                                     self.classA_list.append(j)
                                 elif d[i] == 1:
                                     self.classB_list.append(j)
-                    return True
+        if self.classA_list != [] or self.classB_list !=[]:
+            while(self.index in self.classA_list or self.index in self.classB_list):
+                self.index +=1
+                if self.index > len(self.paths):
+                    print("All Images Classified")
+                    break
+            return True
         return False
-
-
 
 
 
@@ -215,12 +211,12 @@ class classifier():
         else:
             self.model = "r"
 
-    def make_npy_dict(self):
-        index = 1
-        self.npy_dict = {}
-        for i in self.features:
-           self.npy_dict[index] = i.flatten() 
-           index +=1
+#    def make_npy_dict(self):
+#        index = 1
+#        self.npy_dict = {}
+#        for i in self.features:
+#           self.npy_dict[index] = i.flatten()
+#           index +=1
 
     def get_unclassified(self):
         unclass = []
@@ -233,13 +229,13 @@ class classifier():
 
  
 
-    #creates dictionary (1:image)....
-    def make_pic_dict(self):
-        j = 1
-        for i in self.paths:
-            if i != self.path+'/labels.pkl':
-                self.img_dict[j]= i
-                j+=1
+#    #creates dictionary (1:image)....
+#    def make_pic_dict(self):
+#        j = 1
+#        for i in self.paths:
+#            if i != self.path+'/labels.pkl':
+#                self.img_dict[j]= i
+#                j+=1
 
 
 
@@ -302,7 +298,7 @@ class classifier():
     #does not allow user to go past the end of the list
     def getNext(self):
         # if there is a trained svm, get next from here, otherwise random
-        if self.get_unclassified != []:
+        if self.get_unclassified() != []:
             if self.model == "r" or (self.classA_list == [] or self.classB_list == []):
                 index = self.index
                 index +=1
@@ -350,8 +346,24 @@ class classifier():
         else:
             print("All Images have been Classified\nNumber of images skipped:",self.skipped,"\nNumber of images classified:", self.classified)
 
-            
-            
+    
+#    def test(self):
+#        for i in range(1,len(self.npy_dict.items())):
+#            type = 0
+#            if i in self.classA_list:
+#                type = 2
+#            elif i in self.classB_list:
+#                type = 1
+#            #print("index:",i,"Image",self.img_dict[i],"feature image:",self.npy_dict[i], "class",type)
+#            image = self.img_dict[i]
+#            print(i)
+#            print(self.npy_dict[i])
+#            print(self.feats[image])
+#            print(type)
+#            print("------")
+#        print(self.classA_list)
+#        print(self.classB_list)
+
 
     #happens each time the user presses quit
     #pushes all data out to text file
