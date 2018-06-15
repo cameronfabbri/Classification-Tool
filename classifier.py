@@ -151,11 +151,15 @@ class classifier():
             type = value
             path = self.paths
             for i in self.full_paths:
-                if value in i :
+                if value in i:
                     self.feats = load_img_features(type,self.path)
-                    self.remake_npy_dict(self.feats)
-                    print("Images Reloaded")
-                    break
+                    if len(self.feats) < len(self.paths):
+                        self.feats = None
+                        break
+                    else:
+                        self.remake_npy_dict(self.feats)
+                        print("Images Reloaded")
+                        break
             if self.feats == None:
                 print('Loading images...')
                 compute_img_features(type, path,self.path)
@@ -169,9 +173,12 @@ class classifier():
 
     def remake_npy_dict(self,new):
         index = 1
+        self.img_dict = {}
         for i in new:
+            self.img_dict[index] = i
             self.npy_dict[index] = new[i]
             index +=1
+        print(self.img_dict)
             
     def getType(self):
         return self.type
