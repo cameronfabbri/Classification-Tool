@@ -114,7 +114,7 @@ class classifier():
             self.classB_list.append(self.index)
             self.getNext()
         def skipClassEvent(event):
-            self.skip +=1
+            self.skipped +=1
             self.getNext()
             del self.npy_dict[self.index]
         
@@ -348,7 +348,7 @@ class classifier():
                 self.index = indexes[farthest]
                 self.load_img()
         else:
-            print("All Images have been Classified\nNumber of images skipped:",self.skip,"\nNumber of images classified:", self.classified)
+            print("All Images have been Classified\nNumber of images skipped:",self.skipped,"\nNumber of images classified:", self.classified)
 
             
             
