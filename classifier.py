@@ -23,7 +23,6 @@ import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
 import time
-from tkinter import ttk
 
 
 # Active learning bit
@@ -55,28 +54,28 @@ class classifier():
         self.height = 256
         self.img_list = []
         self.root = Tk()
-        self.root.style = ttk.Style()
+#        self.root.style = Style()
+#        self.root.style.theme_use("alt")
         #('clam', 'alt', 'default', 'classic')
-        self.root.style.theme_use("alt")
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
-        self.root.geometry('600x400')
+        self.root.geometry('700x500')
         self.label1 = Label(self.root,text='1 = Distorted')
-        self.label1.grid(column=0, row=0)
+        self.label1.grid(column=0, row=3)
         self.label1 = Label(self.root,text='2 = Nondistorted')
-        self.label1.grid(column=0, row=1)
+        self.label1.grid(column=0, row=4)
         self.quit = Button(self.root,text = "Quit", command = self.save)
-        self.quit.grid(column= 3,row = 5)
+        self.quit.grid(column= 7,row = 5)
         self.next = Button(self.root,text = "Next", command = self.getNext)
-        self.next.grid(column= 2, row = 5)
+        self.next.grid(column= 6, row = 5)
         self.prev = Button(self.root,text = "Previous", command = self.getPrev)
-        self.prev.grid(column = 1, row = 5)
+        self.prev.grid(column = 5, row = 5)
         self.load = Button(self.root,text = "Load", command = self.loadImages)
-        self.load.grid(column = 4, row = 5)
+        self.load.grid(column = 8, row = 5)
         self.label = Label(text = "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
-        self.noclass.grid(column = 5, row = 5)
+        self.noclass.grid(column = 9, row = 5)
         choices = {'Random','Closest', 'Farthest'}
         modelChoices = ['pixels', 'inception_v1', 'inception_v2', 'inception_v3', 'inception_resnet_v2', 'resnet_v1_50', 'resnet_v1_101', 'vgg_16', 'vgg_19']
         
@@ -87,10 +86,10 @@ class classifier():
         self.option_menu1 = OptionMenu(self.root,self.dropVar, *choices, command = self.func)
         self.option_menu2 = OptionMenu(self.root,self.modelVar, *modelChoices, command = self.choseModel)
 
-        self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 5, column = 0)
-        self.popup_label = Label(self.root, text= "Choose image representation:").grid(row = 7, column = 0)
-        self.option_menu1.grid(row = 6, column = 0)
-        self.option_menu2.grid(row = 8, column = 0)
+        self.popup_label = Label(self.root, text= "Choose an Active Learning Method:").grid(row = 6, column = 0)
+        self.popup_label = Label(self.root, text= "Choose image representation:").grid(row = 8, column = 0)
+        self.option_menu1.grid(row = 7, column = 0)
+        self.option_menu2.grid(row = 9, column = 0)
 
         try: self.initial_path = sys.argv[1]
         except: self.initial_path='./'
@@ -214,7 +213,7 @@ class classifier():
                 self.index +=1
                 if self.index > len(self.paths):
                     print("All Images Classified")
-                    break
+                    self.save()
             return True
         return False
 
@@ -264,8 +263,7 @@ class classifier():
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
-        else:
-            print("Image Index out of range")
+       
 
 
     
@@ -316,13 +314,16 @@ class classifier():
     #does not allow user to go past the end of the list
     def getNext(self):
         # if there is a trained svm, get next from here, otherwise random
-        if self.get_unclassified() != []:
+        if self.get_unclassified() != ([],[]):
             if self.model == "r" or (self.classA_list == [] or self.classB_list == []):
                 index = self.index
                 index +=1
                 if index < len(self.paths):
                     self.index = index
                     self.load_img()
+                else:
+                    print("All Images Classified")
+                    self.save()
 
             # if both lists have contents, train svm here
             elif self.model == "c":
@@ -340,12 +341,14 @@ class classifier():
                 unclass_vals,indexes = self.get_unclassified()
                 unclass_vals = np.asarray(unclass_vals)
                 self.clf.fit(imag_reps,class_vals)
-                if unclass_vals.shape[0] == 1:
-                    print("here")
-                    unclass_vals = unclass_vals.reshape(-1,1)
-                closest = np.argmin(self.clf.decision_function(unclass_vals))
-                self.index = indexes[closest]
-                self.load_img()
+                if len(unclass_vals) == 1:
+                    unclass_vals = unclass_vals.reshape(1,-1)
+                    self.index = indexes[0]
+                    self.load_img
+                if len(unclass_vals) > 1:
+                    closest = np.argmin(self.clf.decision_function(unclass_vals))
+                    self.index = indexes[closest]
+                    self.load_img()
             else:
                 self.prev = self.index
                 imag_reps = []
@@ -361,11 +364,17 @@ class classifier():
                 unclass_vals,indexes = self.get_unclassified()
                 unclass_vals = np.asarray(unclass_vals)
                 self.clf.fit(imag_reps,class_vals)
-                farthest = np.argmax(self.clf.decision_function(unclass_vals))
-                self.index = indexes[farthest]
-                self.load_img()
+                if len(unclass_vals) == 1:
+                    unclass_vals = unclass_vals.reshape(1,-1)
+                    self.index = indexes[0]
+                    self.load_img
+                if len(unclass_vals) > 1:
+                    farthest = np.argmin(self.clf.decision_function(unclass_vals))
+                    self.index = indexes[farthest]
+                    self.load_img()
         else:
             print("All Images have been Classified")
+            self.save()
 
     
 #    def test(self):
