@@ -74,11 +74,13 @@ class classifier():
         self.load.grid(column = 8, row = 5)
         self.label = Label(text = "No Image Loaded",height = 15, width = 15)
         self.label.grid(row = 0, column = 1, columnspan = 10)
+        self.numImages = Label(text = "0")
+        self.numImages.grid(column = 0, row = 10)
         self.noclass = Button(self.root,text = "No Class", command = self.getNext)
         self.noclass.grid(column = 9, row = 5)
         choices = {'Random','Closest', 'Farthest'}
         modelChoices = ['pixels', 'inception_v1', 'inception_v2', 'inception_v3', 'inception_resnet_v2', 'resnet_v1_50', 'resnet_v1_101', 'vgg_16', 'vgg_19']
-        
+
         self.dropVar = StringVar()
         self.modelVar = StringVar()
         self.dropVar.set("random")   #default
@@ -107,7 +109,7 @@ class classifier():
         self.clf = SVC(kernel='linear')
         self.feats = None
         self.full_paths= []
-        self.numImages = 0
+        self.images = 1
 
         def classA(event):
             self.classA_list.append(self.index)
@@ -123,7 +125,7 @@ class classifier():
             while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
                 self.index +=1
             self.load_img()
-        
+
         self.root.bind(2, classA)
         self.root.bind(1, classB)
         self.root.bind(3, skipClassEvent)
@@ -138,8 +140,7 @@ class classifier():
         self.path = filedialog.askdirectory(initialdir=self.initial_path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
-        #numImages = len(self.paths)
-#       self.make_pic_dict()
+
 
     def delete_item(self,d,item):
         new = {}
@@ -149,7 +150,7 @@ class classifier():
                 new[i] = d[i]
         return new
 
-    
+
 
 #    def load_pix_features(self):
 #        self.features =[]
@@ -162,10 +163,11 @@ class classifier():
 #        self.make_npy_dict()
 #        self.load_img()
 
-    def choseModel(self, value):
-        if self.classA_list == [] and self.classB_list == [] and value!= 'pixels':
+    def choseModel(self,value):
+        if self.classA_list == [] and self.classB_list == [] and value != 'pixels':
             type = value
             path = self.paths
+        if self.check_and_reload() == False:
             for i in self.full_paths:
                 if value in i:
                     self.feats = load_img_features(type,self.path)
@@ -173,15 +175,12 @@ class classifier():
                     print("Images Reloaded")
                     break
             if self.feats == None:
-                print('Loading images...')
-                compute_img_features(type, path,self.path)
-                print('Done')
+                print("Loading Images")
+                compute_img_features(type,path,self.path)
+                print("Done")
                 self.feats = load_img_features(type,self.path)
                 self.remake_npy_dict(self.feats)
-            self.check_and_reload()
             self.load_img()
-#        else:
-#            self.load_pix_features()
 
 
     def remake_npy_dict(self,new):
@@ -194,27 +193,20 @@ class classifier():
             self.img_dict[index] = i
             self.npy_dict[index] = new[i]
             index +=1
-        self.numImages = len(self.paths)
+        #self.numImages = len(self.paths)
 
     def check_and_reload(self):
-        for i in self.full_paths:
-            if "labels.pkl" in i:
-                with open(self.path+'/labels.pkl', 'rb') as pickle_file:
-                    d = pickle.load(pickle_file)
-                    for i in d:
-                        for j in self.img_dict:
-                            if i == self.img_dict[j]:
-                                if d[i] == 2:
-                                    self.classA_list.append(j)
-                                elif d[i] == 1:
-                                    self.classB_list.append(j)
-        if self.classA_list != [] or self.classB_list !=[]:
-            while(self.index in self.classA_list or self.index in self.classB_list):
-                self.index +=1
-                if self.index > len(self.paths):
-                    print("All Images Classified")
-                    self.save()
-            return True
+        if os.path.isfile(self.path+'/labels.pkl'):
+           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths = pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           self.images += len(self.classA_list) + len(self.classB_list)
+           if self.classA_list != [] or self.classB_list !=[]:
+               while(self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped):
+                   self.index +=1
+                   if self.index > len(self.paths):
+                       print("All Images Classified")
+                       self.save()
+               self.load_img()
+               return True
         return False
 
 
@@ -244,7 +236,7 @@ class classifier():
                 indexes.append(i)
         return unclass,indexes
 
- 
+
 
 #    #creates dictionary (1:image)....
 #    def make_pic_dict(self):
@@ -259,14 +251,16 @@ class classifier():
     #loads image on to the screen using a label
     def load_img(self):
         if self.index -1 < len(self.paths):
+            self.images+=1
+            self.numImages.config(text = str(self.images))
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
             self.label.image = photo
-       
 
 
-    
+
+
     def getPaths(self, data_dir):
         exts = ['*.JPEG','*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
         for pattern in exts:
@@ -275,7 +269,7 @@ class classifier():
                     if fnmatch.fnmatch(filename, pattern):
                         fname_ = os.path.join(d,filename)
                         self.paths.append(fname_)
-    
+
         exts = ['*.JPEG','*.JPG','*.jpg','*.jpeg','*.png','*.PNG','*.pkl']
         for pattern in exts:
             for d, s, fList in os.walk(data_dir):
@@ -376,7 +370,7 @@ class classifier():
             print("All Images have been Classified")
             self.save()
 
-    
+
 #    def test(self):
 #        for i in range(1,len(self.npy_dict.items())):
 #            type = 0
@@ -407,11 +401,14 @@ class classifier():
                     d[i] = 2
                 elif index in self.classB_list:
                     d[i] = 1
+                elif index in self.skipped:
+                    d[i] = -1
                 else:
                     d[i] = 0
                 index +=1
+
             pkl = open(self.path+'/labels.pkl', 'wb')
-            data = pickle.dumps(d)
+            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths])
             pkl.write(data)
             pkl.close()
         self.root.destroy()
@@ -420,7 +417,3 @@ class classifier():
 
 
 c = classifier()
-
-
-
-
