@@ -23,6 +23,7 @@ import load_features as load
 from compute_features import compute_img_features
 from load_features import load_img_features
 import time
+from sklearn import linear_model
 
 
 # Active learning bit
@@ -54,9 +55,6 @@ class classifier():
         self.height = 256
         self.img_list = []
         self.root = Tk()
-#        self.root.style = Style()
-#        self.root.style.theme_use("alt")
-        #('clam', 'alt', 'default', 'classic')
         self.window = Frame(self.root)
         self.root.title("Picture Classifier")
         self.root.geometry('700x500')
@@ -108,12 +106,15 @@ class classifier():
         self.npy_dict = {}
         self.model = "r"
         self.type = "None"
-        self.clf = SVC(kernel='linear')
+        #self.clf = SVC(kernel='linear',cache_size=3.2e10)
+        self.clf = linear_model.SGDClassifier()
         self.feats = None
         self.full_paths= []
         self.images = 1
+        self.skip_flg =None
 
         def classA(event):
+            self.skip_flg = False
             self.images+=1
             self.numImages.config(text = str(self.images))
             self.classA_list.append(self.index)
@@ -121,6 +122,7 @@ class classifier():
             self.class_vals.append(2)
             self.getNext()
         def classB(event):
+            self.skip_flg = False
             self.images+=1
             self.numImages.config(text = str(self.images))
             self.classB_list.append(self.index)
@@ -128,9 +130,11 @@ class classifier():
             self.class_vals.append(1)
             self.getNext()
         def skipClassEvent(event):
+            self.skip_flg = True
             self.skipped.append(self.index)
-            self.img_dict = self.delete_item(self.img_dict,self.index)
-            self.npy_dict = self.delete_item(self.npy_dict,self.index)
+            #self.img_dict = self.delete_item(self.img_dict,self.index)
+            #self.npy_dict = self.delete_item(self.npy_dict,self.index)
+            self.prev = self.index
             self.index = 1
 
             while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
@@ -208,14 +212,11 @@ class classifier():
 
     def check_and_reload(self):
         if os.path.isfile(self.path+'/labels.pkl'):
-<<<<<<< HEAD
+           print("Loading Images...")
            d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals = pickle.load(open(self.path+'/labels.pkl', 'rb'))
            print(len(self.skipped))
+           print("Done")
            #self.get_reps()
-=======
-           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths = pickle.load(open(self.path+'/labels.pkl', 'rb'))
-           print(self.skipped)
->>>>>>> 6e7ae7f289913471ffbac08767d294c7b77c8a08
            self.images += len(self.classA_list) + len(self.classB_list)
            if self.classA_list != [] or self.classB_list !=[]:
                while(self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped):
@@ -223,6 +224,9 @@ class classifier():
                    if self.index > len(self.paths):
                        print("All Images Classified")
                        self.save()
+               print("Fitting data...")
+               self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+               print("Done")
                self.load_img()
                return True
         return False
@@ -253,6 +257,7 @@ class classifier():
             if i not in self.classA_list and i not in self.classB_list and i not in self.skipped:
                 unclass.append(self.npy_dict[i])
                 indexes.append(i)
+        print(len(unclass))
         return unclass,indexes
 
 
@@ -300,21 +305,28 @@ class classifier():
                 self.load_img()
             if self.index in self.classA_list:
                 self.classA_list.remove(self.index)
-            else:
+            elif self.index in self.classB_list:
                 self.classB_list.remove(self.index)
+            else:
+                self.skipped.remove(self.index)
         elif self.model in "cf":
-            self.index = self.prev
-            self.imag_reps.reverse()
-            self.class_vals.reverse()
-            self.imag_reps = self.imag_reps[1:]
-            self.imag_reps.reverse()
-            self.class_vals = self.class_vals[1:]
-            self.class_vals.reverse()
-            self.load_img()
-            if self.index in self.classA_list:
-                self.classA_list.remove(self.index)
+            if self.skip_flg:
+                self.skipped.remove(self.prev)
+                self.index = self.prev
+                self.load_img()
             else:
-                self.classB_list.remove(self.index)
+                self.index = self.prev
+                self.imag_reps.reverse()
+                self.class_vals.reverse()
+                self.imag_reps = self.imag_reps[1:]
+                self.imag_reps.reverse()
+                self.class_vals = self.class_vals[1:]
+                self.class_vals.reverse()
+                self.load_img()
+                if self.index in self.classA_list:
+                    self.classA_list.remove(self.index)
+                else:
+                    self.classB_list.remove(self.index)
 
 
 
@@ -335,11 +347,15 @@ class classifier():
 
             # if both lists have contents, train svm here
             elif self.model == "c":
-                if self.images %7 == 0:
+                if self.images %1 == 0:
                     self.prev = self.index
                     unclass_vals,indexes = self.get_unclassified()
                     unclass_vals = np.asarray(unclass_vals)
-                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    s= time.time()
+                    temp = np.array([self.imag_reps[-1]])
+                    self.clf.partial_fit(temp,np.asarray(self.class_vals)[-1])
+                    e = time.time()
+                    print("time:",e-s)
                     if len(unclass_vals) == 1:
                         unclass_vals = unclass_vals.reshape(1,-1)
                         self.index = indexes[0]
@@ -359,17 +375,31 @@ class classifier():
                     self.index = index 
                     self.load_img()
             else:
-                if self.images %7 == 0: 
+                if self.images %1 == 0: 
                     self.prev = self.index
                     unclass_vals,indexes = self.get_unclassified()
                     unclass_vals = np.asarray(unclass_vals)
-                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    s= time.time()
+                    temp = np.array([self.imag_reps[-1]])
+                    print(temp)
+                    print("image:",temp.shape)
+                    print(np.array([self.class_vals[-1]]))
+                    print("class", np.array([self.class_vals[-1]]).shape)
+                    #exit()
+                    self.clf.partial_fit(temp,np.array([self.class_vals[-1]]))
+                    e = time.time()
+                    print("time:",e-s)
                     if len(unclass_vals) == 1:
                         unclass_vals = unclass_vals.reshape(1,-1)
                         self.index = indexes[0]
                         self.load_img
                     if len(unclass_vals) > 1:
+                        s = time.time()
                         farthest = np.argmax(self.clf.decision_function(unclass_vals))
+                        #farthest = self.clf.decision_function(unclass_vals)
+                        e = time.time()
+                        print("decision function time:",e-s)
+                        #exit()
                         self.index = indexes[farthest]
                         self.load_img()
                 else:
