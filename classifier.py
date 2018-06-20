@@ -97,6 +97,8 @@ class classifier():
         except: self.initial_path='./'
 
         # should contain the index of self.features for what was labeled
+        self.imag_reps = []
+        self.class_vals = []
         self.classA_list = [] # [2,5,1]
         self.classB_list = []
         self.skipped = []
@@ -112,16 +114,25 @@ class classifier():
         self.images = 1
 
         def classA(event):
+            self.images+=1
+            self.numImages.config(text = str(self.images))
             self.classA_list.append(self.index)
+            self.imag_reps.append(self.npy_dict[self.index])
+            self.class_vals.append(2)
             self.getNext()
         def classB(event):
+            self.images+=1
+            self.numImages.config(text = str(self.images))
             self.classB_list.append(self.index)
+            self.imag_reps.append(self.npy_dict[self.index])
+            self.class_vals.append(1)
             self.getNext()
         def skipClassEvent(event):
             self.skipped.append(self.index)
             self.img_dict = self.delete_item(self.img_dict,self.index)
             self.npy_dict = self.delete_item(self.npy_dict,self.index)
             self.index = 1
+
             while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
                 self.index +=1
             self.load_img()
@@ -197,7 +208,9 @@ class classifier():
 
     def check_and_reload(self):
         if os.path.isfile(self.path+'/labels.pkl'):
-           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths = pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals = pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           print(len(self.skipped))
+           #self.get_reps()
            self.images += len(self.classA_list) + len(self.classB_list)
            if self.classA_list != [] or self.classB_list !=[]:
                while(self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped):
@@ -209,7 +222,14 @@ class classifier():
                return True
         return False
 
-
+    def get_reps(self):
+        for i in self.classA_list:
+            self.imag_reps.append(self.npy_dict[i])
+            self.class_vals.append(2)
+        for i in self.classB_list:
+            self.imag_reps.append(self.npy_dict[i])
+            self.class_vals.append(1)
+        print(self.class_vals)
 
     # preprocessing
     def func(self,value):
@@ -220,12 +240,6 @@ class classifier():
         else:
             self.model = "r"
 
-#    def make_npy_dict(self):
-#        index = 1
-#        self.npy_dict = {}
-#        for i in self.features:
-#           self.npy_dict[index] = i.flatten()
-#           index +=1
 
     def get_unclassified(self):
         unclass = []
@@ -238,21 +252,10 @@ class classifier():
 
 
 
-#    #creates dictionary (1:image)....
-#    def make_pic_dict(self):
-#        j = 1
-#        for i in self.paths:
-#            if i != self.path+'/labels.pkl':
-#                self.img_dict[j]= i
-#                j+=1
-
-
-
     #loads image on to the screen using a label
     def load_img(self):
         if self.index -1 < len(self.paths):
-            self.images+=1
-            self.numImages.config(text = str(self.images))
+            print("index:",self.index)
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
@@ -296,6 +299,12 @@ class classifier():
                 self.classB_list.remove(self.index)
         elif self.model in "cf":
             self.index = self.prev
+            self.imag_reps.reverse()
+            self.class_vals.reverse()
+            self.imag_reps = self.imag_reps[1:]
+            self.imag_reps.reverse()
+            self.class_vals = self.class_vals[1:]
+            self.class_vals.reverse()
             self.load_img()
             if self.index in self.classA_list:
                 self.classA_list.remove(self.index)
@@ -321,72 +330,56 @@ class classifier():
 
             # if both lists have contents, train svm here
             elif self.model == "c":
-                self.prev = self.index
-                imag_reps = []
-                class_vals = []
-                for i in self.classA_list:
-                    imag_reps.append(self.npy_dict[i])
-                    class_vals.append(2)
-                for i in self.classB_list:
-                    imag_reps.append(self.npy_dict[i])
-                    class_vals.append(1)
-                imag_reps = np.asarray(imag_reps)
-                class_vals = np.asarray(class_vals)
-                unclass_vals,indexes = self.get_unclassified()
-                unclass_vals = np.asarray(unclass_vals)
-                self.clf.fit(imag_reps,class_vals)
-                if len(unclass_vals) == 1:
-                    unclass_vals = unclass_vals.reshape(1,-1)
-                    self.index = indexes[0]
-                    self.load_img
-                if len(unclass_vals) > 1:
-                    closest = np.argmin(self.clf.decision_function(unclass_vals))
-                    self.index = indexes[closest]
+                if self.images %7 == 0:
+                    self.prev = self.index
+                    unclass_vals,indexes = self.get_unclassified()
+                    unclass_vals = np.asarray(unclass_vals)
+                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    if len(unclass_vals) == 1:
+                        unclass_vals = unclass_vals.reshape(1,-1)
+                        self.index = indexes[0]
+                        self.load_img
+                    if len(unclass_vals) > 1:
+                       closest = np.argmin(self.clf.decision_function(unclass_vals))
+                       self.index = indexes[closest]
+                       self.load_img()
+                else:
+                    self.prev = self.index
+                    index = 1 
+                    if self.index + 1 not in self.classA_list and self.index + 1 not in self.classB_list and self.index + 1 not in self.skipped and self.index + 1 < len(self.paths):
+                        index = self.index + 1
+                    else:
+                        while index in self.classA_list or index in self.classB_list or index in self.classB_list or index in self.skipped:
+                            index +=1
+                    self.index = index 
                     self.load_img()
             else:
-                self.prev = self.index
-                imag_reps = []
-                class_vals = []
-                for i in self.classA_list:
-                    imag_reps.append(self.npy_dict[i])
-                    class_vals.append(2)
-                for i in self.classB_list:
-                    imag_reps.append(self.npy_dict[i])
-                    class_vals.append(1)
-                imag_reps = np.asarray(imag_reps)
-                class_vals = np.asarray(class_vals)
-                unclass_vals,indexes = self.get_unclassified()
-                unclass_vals = np.asarray(unclass_vals)
-                self.clf.fit(imag_reps,class_vals)
-                if len(unclass_vals) == 1:
-                    unclass_vals = unclass_vals.reshape(1,-1)
-                    self.index = indexes[0]
-                    self.load_img
-                if len(unclass_vals) > 1:
-                    farthest = np.argmin(self.clf.decision_function(unclass_vals))
-                    self.index = indexes[farthest]
+                if self.images %7 == 0: 
+                    self.prev = self.index
+                    unclass_vals,indexes = self.get_unclassified()
+                    unclass_vals = np.asarray(unclass_vals)
+                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    if len(unclass_vals) == 1:
+                        unclass_vals = unclass_vals.reshape(1,-1)
+                        self.index = indexes[0]
+                        self.load_img
+                    if len(unclass_vals) > 1:
+                        farthest = np.argmax(self.clf.decision_function(unclass_vals))
+                        self.index = indexes[farthest]
+                        self.load_img()
+                else:
+                    self.prev = self.index
+                    index = 1 
+                    if self.prev + 1 not in self.classA_list and self.prev + 1 not in self.classB_list and self.prev + 1 not in self.skipped and self.prev + 1 < len(self.paths):
+                        index = self.prev + 1
+                    else:
+                        while index in self.classA_list or index in self.classB_list or index in self.classB_list or index in self.skipped:
+                            index +=1
+                    self.index = index 
                     self.load_img()
         else:
             print("All Images have been Classified")
             self.save()
-
-
-#    def test(self):
-#        for i in range(1,len(self.npy_dict.items())):
-#            type = 0
-#            if i in self.classA_list:
-#                type = 2
-#            elif i in self.classB_list:
-#                type = 1
-#            #print("index:",i,"Image",self.img_dict[i],"feature image:",self.npy_dict[i], "class",type)
-#            image = self.img_dict[i]
-#            print(i)
-#            print(self.npy_dict[i])
-#            print(self.feats[image])
-#            print(type)
-#            print("------")
-#        print(self.classA_list)
-#        print(self.classB_list)
 
 
     #happens each time the user presses quit
@@ -408,7 +401,7 @@ class classifier():
                 index +=1
 
             pkl = open(self.path+'/labels.pkl', 'wb')
-            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths])
+            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps, self.class_vals])
             pkl.write(data)
             pkl.close()
         self.root.destroy()
