@@ -208,9 +208,14 @@ class classifier():
 
     def check_and_reload(self):
         if os.path.isfile(self.path+'/labels.pkl'):
+<<<<<<< HEAD
            d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals = pickle.load(open(self.path+'/labels.pkl', 'rb'))
            print(len(self.skipped))
            #self.get_reps()
+=======
+           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths = pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           print(self.skipped)
+>>>>>>> 6e7ae7f289913471ffbac08767d294c7b77c8a08
            self.images += len(self.classA_list) + len(self.classB_list)
            if self.classA_list != [] or self.classB_list !=[]:
                while(self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped):
