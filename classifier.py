@@ -114,6 +114,7 @@ class classifier():
         self.full_paths= []
         self.images = 1
         self.skip_flg =None
+        self.first_time = False
 
         def classA(event):
             self.skip_flg = False
@@ -141,6 +142,10 @@ class classifier():
             #self.npy_dict = self.delete_item(self.npy_dict,self.index)
             self.prev = self.index
             self.index = 1
+            if self.get_unclassified() == ([],[]):
+                print("All Images Classified, Saving Data...")
+                self.save()
+                print("Done")
 
             while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
                 self.index +=1
@@ -157,9 +162,12 @@ class classifier():
         When using features, instead of reading images this will use the feature vector
     '''
     def loadImages(self):
+        print("Select Load Images")
         self.path = filedialog.askdirectory(initialdir=self.initial_path)
         self.prev = -1
         self.paths = self.getPaths(self.path)
+        print("Image Paths loaded, choose Image type")
+    
 
 
     def delete_item(self,d,item):
@@ -200,6 +208,7 @@ class classifier():
                 print("Done")
                 self.feats = load_img_features(type,self.path)
                 self.remake_npy_dict(self.feats)
+            self.first_time = True
             self.load_img()
 
 
@@ -217,14 +226,16 @@ class classifier():
 
     def check_and_reload(self):
         if os.path.isfile(self.path+'/labels.pkl'):
-           print("Loading Images...")
-           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals = pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           print("Loading Previous Data...")
+           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals= pickle.load(open(self.path+'/labels.pkl', 'rb'))
            print(len(self.skipped))
            print("Done")
            #self.get_reps()
+           print("Counting images...")
            for i in d:
                if d[i] == 1 or d[i] ==2:
                    self.images+=1
+           print("Done")
            #self.images += len(self.classA_list) + len(self.classB_list)
            if self.classA_list != [] or self.classB_list !=[]:
                while(self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped):
@@ -257,7 +268,7 @@ class classifier():
         else:
             self.model = "r"
 
-
+#first case should only occur once at the beginning
     def get_unclassified(self):
         if self.un_prev == None:
             unclass = []
@@ -379,7 +390,14 @@ class classifier():
 
             # if both lists have contents, train svm here
             elif self.model == "c":
-                if self.images %1 == 0:
+                if self.first_time:
+                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    self.index +=1
+                    self.prev = self.index
+                    self.load_img()
+                    self.first_time = False
+                        
+                elif self.images %1 == 0:
                     self.prev = self.index
                     unclass_vals,indexes = c
                     unclass_vals = np.asarray(unclass_vals)
@@ -407,7 +425,13 @@ class classifier():
                     self.index = index 
                     self.load_img()
             else:
-                if self.images %1 == 0: 
+                if self.first_time:
+                    self.clf.fit(np.asarray(self.imag_reps),np.asarray(self.class_vals))
+                    self.prev = self.index
+                    self.index +=1
+                    self.load_img()
+                    self.first_time = False
+                elif self.images %1 == 0:
                     self.prev = self.index
                     unclass_vals,indexes = c
                     unclass_vals = np.asarray(unclass_vals)
@@ -448,6 +472,8 @@ class classifier():
     #pushes all data out to text file
     #creates a unique name for each file
     def save(self):
+        if self.rec != []:
+            self.un_prev = self.get_unclassified()
         if self.classA_list != [] or self.classB_list != []:
             d = {}
             index = 1
@@ -463,7 +489,7 @@ class classifier():
                 index +=1
 
             pkl = open(self.path+'/labels.pkl', 'wb')
-            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps, self.class_vals])
+            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps, self.class_vals,self.un_prev])
             pkl.write(data)
             pkl.close()
         self.root.destroy()
