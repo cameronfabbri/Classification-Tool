@@ -115,8 +115,11 @@ class classifier():
         self.images = 1
         self.skip_flg =None
         self.first_time = False
+        self.d = {}
+        self.path_len = 0
 
         def classA(event):
+            self.d[self.paths[self.index-1]] = 2 
             self.skip_flg = False
             self.rec.append(self.index)
             self.images+=1
@@ -126,6 +129,7 @@ class classifier():
             self.class_vals.append(2)
             self.getNext()
         def classB(event):
+            self.d[self.paths[self.index-1]] = 1 
             self.skip_flg = False
             self.rec.append(self.index)
             self.images+=1
@@ -135,6 +139,7 @@ class classifier():
             self.class_vals.append(1)
             self.getNext()
         def skipClassEvent(event):
+            self.d[self.paths[self.index-1]] = -1 
             self.skip_flg = True
             self.rec.append(self.index)
             self.skipped.append(self.index)
@@ -142,14 +147,13 @@ class classifier():
             #self.npy_dict = self.delete_item(self.npy_dict,self.index)
             self.prev = self.index
             self.index = 1
-            if self.get_unclassified() == ([],[]):
-                print("All Images Classified, Saving Data...")
-                self.save()
-                print("Done")
 
             while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
                 self.index +=1
-            self.load_img()
+            if self.index > self.path_len:
+                print("All Images Classified")
+            else:
+                self.load_img()
 
         self.root.bind(2, classA)
         self.root.bind(1, classB)
@@ -210,6 +214,7 @@ class classifier():
                 self.remake_npy_dict(self.feats)
             self.first_time = True
             self.load_img()
+        self.path_len = len(self.paths)
 
 
     def remake_npy_dict(self,new):
@@ -227,13 +232,13 @@ class classifier():
     def check_and_reload(self):
         if os.path.isfile(self.path+'/labels.pkl'):
            print("Loading Previous Data...")
-           d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals= pickle.load(open(self.path+'/labels.pkl', 'rb'))
+           self.d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps,self.class_vals,self.un_prev= pickle.load(open(self.path+'/labels.pkl', 'rb'))
            print(len(self.skipped))
            print("Done")
            #self.get_reps()
            print("Counting images...")
-           for i in d:
-               if d[i] == 1 or d[i] ==2:
+           for i in self.d:
+               if self.d[i] == 1 or self.d[i] ==2:
                    self.images+=1
            print("Done")
            #self.images += len(self.classA_list) + len(self.classB_list)
@@ -277,7 +282,7 @@ class classifier():
                 if i not in self.classA_list and i not in self.classB_list and i not in self.skipped:
                     unclass.append(self.npy_dict[i])
                     indexes.append(i)
-            print(len(unclass))
+            #print(len(unclass))
             self.un_prev = unclass,indexes
             self.rec = []
             return unclass,indexes
@@ -289,7 +294,7 @@ class classifier():
                     indexes.remove(i)
                     del unclass[index]
                 index+=1
-            print(len(unclass))
+            #print(len(unclass))
             self.rec = []
             self.un_prev = unclass,indexes
             return unclass,indexes 
@@ -299,7 +304,7 @@ class classifier():
     #loads image on to the screen using a label
     def load_img(self):
         if self.index -1 < len(self.paths):
-            print("index:",self.index)
+            #print("index:",self.index)
             im = Image.open(self.paths[self.index-1])
             photo = ImageTk.PhotoImage(im)
             self.label.config(image=photo, height = self.height, width = self.width)
@@ -333,6 +338,7 @@ class classifier():
     def getPrev(self):
         print(self.rec)
         if self.model == 'r' or (self.classA_list == [] or self.classB_list == []):
+            self.d[self.paths[self.index-2]] = 0
             index = self.index
             index -=1
             if index > 0:
@@ -350,6 +356,7 @@ class classifier():
                 self.skipped.remove(self.prev)
                 self.rec.remove(self.prev)
                 self.index = self.prev
+                self.d[self.paths[self.index-1]] = 0
                 self.load_img()
             else:
                 self.index = self.prev
@@ -360,6 +367,7 @@ class classifier():
                 self.imag_reps.reverse()
                 self.class_vals = self.class_vals[1:]
                 self.class_vals.reverse()
+                self.d[self.paths[self.index-1]] = 0
                 if self.index in self.classA_list:
                     self.classA_list.remove(self.index)
                 else:
@@ -371,12 +379,12 @@ class classifier():
 
     #does not allow user to go past the end of the list
     def getNext(self):
-        print("processing")
+        #print("processing")
         # if there is a trained svm, get next from here, otherwise random
         s = time.time()
         c = self.get_unclassified()
         e = time.time()
-        print("unclass time:",e-s)
+        #print("unclass time:",e-s)
         if c != ([],[]):
             if self.model == "r" or (self.classA_list == [] or self.classB_list == []):
                 index = self.index
@@ -439,7 +447,7 @@ class classifier():
                     s = time.time()
                     self.clf.partial_fit(temp,np.array([self.class_vals[-1]]))
                     e = time.time()
-                    print("time:",e-s)
+                    #print("time:",e-s)
                     if len(unclass_vals) == 1:
                         unclass_vals = unclass_vals.reshape(1,-1)
                         self.index = indexes[0]
@@ -448,7 +456,7 @@ class classifier():
                         s = time.time()
                         farthest = np.argmax(self.clf.decision_function(unclass_vals))
                         e = time.time()
-                        print("decision time:",e-s)
+                        #print("decision time:",e-s)
                         #farthest = self.clf.decision_function(unclass_vals)
                         #exit()
                         self.index = indexes[farthest]
@@ -466,7 +474,7 @@ class classifier():
         else:
             print("All Images have been Classified")
             self.save()
-        print("Done")
+        #print("Done")
 
     #happens each time the user presses quit
     #pushes all data out to text file
@@ -475,21 +483,8 @@ class classifier():
         if self.rec != []:
             self.un_prev = self.get_unclassified()
         if self.classA_list != [] or self.classB_list != []:
-            d = {}
-            index = 1
-            for i in self.paths:
-                if index in self.classA_list:
-                    d[i] = 2
-                elif index in self.classB_list:
-                    d[i] = 1
-                elif index in self.skipped:
-                    d[i] = -1
-                else:
-                    d[i] = 0
-                index +=1
-
             pkl = open(self.path+'/labels.pkl', 'wb')
-            data = pickle.dumps([d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps, self.class_vals,self.un_prev])
+            data = pickle.dumps([self.d, self.classA_list, self.classB_list,self.skipped,self.img_dict,self.npy_dict,self.paths,self.imag_reps, self.class_vals,self.un_prev])
             pkl.write(data)
             pkl.close()
         self.root.destroy()
