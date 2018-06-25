@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter import filedialog
 import os
 from PIL import Image,ImageTk
+import matplotlib
+matplotlib.use('Agg')
 import time
 import _pickle as pickle
 import fnmatch
