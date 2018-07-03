@@ -119,7 +119,7 @@ class classifier():
         self.path_len = 0
 
         def classA(event):
-            self.d[self.paths[self.index-1]] = 2
+            self.d[self.paths[self.index-1]] = 2 
             self.skip_flg = False
             self.rec.append(self.index)
             self.images+=1
@@ -129,7 +129,7 @@ class classifier():
             self.class_vals.append(2)
             self.getNext()
         def classB(event):
-            self.d[self.paths[self.index-1]] = 1
+            self.d[self.paths[self.index-1]] = 1 
             self.skip_flg = False
             self.rec.append(self.index)
             self.images+=1
@@ -139,7 +139,7 @@ class classifier():
             self.class_vals.append(1)
             self.getNext()
         def skipClassEvent(event):
-            self.d[self.paths[self.index-1]] = -1
+            self.d[self.paths[self.index-1]] = -1 
             self.skip_flg = True
             self.rec.append(self.index)
             self.skipped.append(self.index)
@@ -171,7 +171,7 @@ class classifier():
         self.prev = -1
         self.paths = self.getPaths(self.path)
         print("Image Paths loaded, choose Image type")
-
+    
 
 
     def delete_item(self,d,item):
@@ -184,37 +184,34 @@ class classifier():
 
 
 
-   def load_pix_features(self):
-       self.features =[]
-       print('Loading images...')
-       for e,p in enumerate(self.paths):
-           self.feats.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
-       self.feats = np.asarray(self.features)
-       print('Done')
-       #self.check_and_reload()
-       self.remake_npy_dict(self.feats)
-       self.load_img()
+#    def load_pix_features(self):
+#        self.features =[]
+#        print('Loading images...')
+#        for e,p in enumerate(self.paths):
+#            self.features.append(misc.imresize(misc.imread(p), (self.height, self.width, 3)))
+#        self.features = np.asarray(self.features)
+#        print('Done')
+#        self.check_and_reload()
+#        self.make_npy_dict()
+#        self.load_img()
 
     def choseModel(self,value):
         if self.classA_list == [] and self.classB_list == [] and value != 'pixels':
             type = value
             path = self.paths
         if self.check_and_reload() == False:
-            if self.feat_type != "Pixels":
-                for i in self.full_paths:
-                    if value in i:
-                        self.feats = load_img_features(type,self.path)
-                        self.remake_npy_dict(self.feats)
-                        print("Images Reloaded")
-                        break
-                if self.feats == None:
-                    print("Loading Images")
-                    compute_img_features(type,path,self.path)
-                    print("Done")
+            for i in self.full_paths:
+                if value in i:
                     self.feats = load_img_features(type,self.path)
                     self.remake_npy_dict(self.feats)
-            else:
-                self.load_pix_features()
+                    print("Images Reloaded")
+                    break
+            if self.feats == None:
+                print("Loading Images")
+                compute_img_features(type,path,self.path)
+                print("Done")
+                self.feats = load_img_features(type,self.path)
+                self.remake_npy_dict(self.feats)
             self.first_time = True
             self.load_img()
         self.path_len = len(self.paths)
@@ -292,7 +289,7 @@ class classifier():
         else:
             index = 0
             unclass,indexes = self.un_prev
-            for i in indexes:
+            for i in indexes: 
                 if i in self.rec:
                     indexes.remove(i)
                     del unclass[index]
@@ -300,7 +297,7 @@ class classifier():
             #print(len(unclass))
             self.rec = []
             self.un_prev = unclass,indexes
-            return unclass,indexes
+            return unclass,indexes 
 
 
 
@@ -407,7 +404,7 @@ class classifier():
                     self.prev = self.index
                     self.load_img()
                     self.first_time = False
-
+                        
                 elif self.images %1 == 0:
                     self.prev = self.index
                     unclass_vals,indexes = c
@@ -427,13 +424,13 @@ class classifier():
                        self.load_img()
                 else:
                     self.prev = self.index
-                    index = 1
+                    index = 1 
                     if self.index + 1 not in self.classA_list and self.index + 1 not in self.classB_list and self.index + 1 not in self.skipped and self.index + 1 < len(self.paths):
                         index = self.index + 1
                     else:
                         while index in self.classA_list or index in self.classB_list or index in self.classB_list or index in self.skipped:
                             index +=1
-                    self.index = index
+                    self.index = index 
                     self.load_img()
             else:
                 if self.first_time:
@@ -466,13 +463,13 @@ class classifier():
                         self.load_img()
                 else:
                     self.prev = self.index
-                    index = 1
+                    index = 1 
                     if self.prev + 1 not in self.classA_list and self.prev + 1 not in self.classB_list and self.prev + 1 not in self.skipped and self.prev + 1 < len(self.paths):
                         index = self.prev + 1
                     else:
                         while index in self.classA_list or index in self.classB_list or index in self.classB_list or index in self.skipped:
                             index +=1
-                    self.index = index
+                    self.index = index 
                     self.load_img()
         else:
             print("All Images have been Classified")

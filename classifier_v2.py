@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton,QMessageBox,QAction, qApp,QFileDialog, QLabel,QLCDNumber, QSlider,QVBoxLayout,QComboBox
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from PyQt5 import QtWidgets, QtGui
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
@@ -39,7 +39,7 @@ class classifier_v2(QMainWindow):
             height: 11px;
             }
             QPushButton{
-            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #9e8550, stop: 1 #847457);
+            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #9e8550, stop: 1; #847457);
             border-radius: 15px;
             border: 1px;
             border-style: outset;
@@ -48,8 +48,9 @@ class classifier_v2(QMainWindow):
             font: 13px;
             padding: 2px;
           }
-          QPushButton:pressed {
+            QPushButton:pressed {
             background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #847457, stop: 1 #9e8550);
+            border-style: inset;
         }
         """
         self.setAutoFillBackground(True)
@@ -110,7 +111,7 @@ class classifier_v2(QMainWindow):
         self.images= 0                          #tracks number of images
         self.feats = None
         self.imag_reps = []                     #classified representations
-        self.un_prev = None                     #previous unclassified
+        self.un_prev = []                     #previous unclassified
         self.class_vals = []                    #classified indexes
         self.classA_list = []
         self.classB_list = []
@@ -129,6 +130,13 @@ class classifier_v2(QMainWindow):
         self.skip_flg = False
         self.path_len = 0
         self.prev = -1                          #index of previous image
+        self.k = QShortcut(QKeySequence("1"),self)
+        self.k.activated.connect(self.classB_event)
+        self.shtct = QShortcut(QKeySequence("2"),self)
+        self.shtct.activated.connect(self.classA_event)
+        self.skct = QShortcut(QKeySequence("3"),self)
+        self.skct.activated.connect(self.skip_event)
+        self.skipped = []
 
         combo.move(25, 400)
         self.lbl.move(25, 370)
@@ -228,7 +236,6 @@ class classifier_v2(QMainWindow):
             self.learn_type = "f"
 
     def getNext(self):
-        self.next.setProperty("border-style","inset")
         c = self.get_unclassified()
         if c != ([],[]):
             if self.learn_type == "r" or (self.classA_list == [] or self.classB_list == []):
@@ -291,44 +298,42 @@ class classifier_v2(QMainWindow):
             self.save()
 
 
-    def keyPressEvent(self, e):
-       print(e.key())
-       if e.key() == 49 or e.key()==16777235:   #class A Event (User Presses 1)
-           self.d[self.paths[self.index-1]] = 2
-           self.skip_flg = False
-           self.rec.append(self.index)
-           self.images+=1
-           self.numImages.setText(str(self.images))
-           self.classA_list.append(self.index)
-           self.imag_reps.append(self.npy_dict[self.index])
-           self.class_vals.append(2)
-           self.getNext()
-       elif e.key() == 50 or e.key() == 16777237: #class B Event (User Presses 2)
-          self.d[self.paths[self.index-1]] = 1
-          self.skip_flg = False
-          self.rec.append(self.index)
-          self.images+=1
-          self.numImages.setText(str(self.images))
-          self.classB_list.append(self.index)
-          self.imag_reps.append(self.npy_dict[self.index])
-          self.class_vals.append(1)
-          self.getNext()
-       elif e.key() == 51 or e.key() == 16777236: #class Skip Event (User Presses 3)
-          self.d[self.paths[self.index-1]] = -1
-          self.skip_flg = True
-          self.rec.append(self.index)
-          self.skipped.append(self.index)
-          self.prev = self.index
-          self.index = 1
+    def classA_event(self):  #class A Event (User Presses 1)
+        self.images+=1
+        self.d[self.paths[self.index-1]] = 2
+        self.skip_flg = False
+        self.rec.append(self.index)
+        self.images+=1
+        self.numImages.setText(str(self.images))
+        self.classA_list.append(self.index)
+        self.imag_reps.append(self.npy_dict[self.index])
+        self.class_vals.append(2)
+        self.getNext()
+    def classB_event(self): #class B Event (User Presses 2)
+        self.images+=1
+        self.d[self.paths[self.index-1]] = 1
+        self.skip_flg = False
+        self.rec.append(self.index)
+        self.images+=1
+        self.numImages.setText(str(self.images))
+        self.classB_list.append(self.index)
+        self.imag_reps.append(self.npy_dict[self.index])
+        self.class_vals.append(1)
+        self.getNext()
+    def skip_event(self): #class Skip Event (User Presses 3)
+        self.d[self.paths[self.index-1]] = -1
+        self.skip_flg = True
+        self.rec.append(self.index)
+        self.skipped.append(self.index)
+        self.prev = self.index
+        self.index = 1
 
-          while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
-              self.index +=1
-          if self.index > self.path_len:
-              print("All Images Classified")
-          else:
-              self.load_img()
-       elif e.key() == 16777234:
-          self.getPrev()
+        while self.index in self.classA_list or self.index in self.classB_list or self.index in self.skipped:
+            self.index +=1
+        if self.index > self.path_len:
+            print("All Images Classified")
+        else:
+            self.load_img()
 
 #first case should only occur once at the beginning
     def get_unclassified(self):
@@ -365,7 +370,7 @@ class classifier_v2(QMainWindow):
          self.load_img()
 
     def getPrev(self):
-        self.prev_btn.setProperty("border-style","inset")
+        self.images-=1
         if self.learn_type == 'r' or (self.classA_list == [] or self.classB_list == []):
             self.d[self.paths[self.index-2]] = 0
             index = self.index
@@ -403,7 +408,6 @@ class classifier_v2(QMainWindow):
 
 
     def init_load(self):
-        self.load.setProperty("border-style","inset")
         self.statusBar().showMessage('Loading Images...')
         self.path = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.paths = self.getPaths(self.path)
@@ -413,9 +417,7 @@ class classifier_v2(QMainWindow):
 
     def load_img(self):
         if self.index < len(self.paths):
-            self.images+=1
             self.numImages.setText(str(self.images))
-            print(self.paths[self.index-1])
             pixmap = QPixmap(self.paths[self.index-1])
             self.label.move(320,50)
             self.label.setPixmap(pixmap)
@@ -442,7 +444,6 @@ class classifier_v2(QMainWindow):
         print("not yet implemented")
 
     def save(self):
-        self.qbtn.setProperty("border-style","inset")
         if self.get_unclassified() == ([],[]) and self.paths != []:
             self.statusBar().showMessage('All Images Classified')
         else:
