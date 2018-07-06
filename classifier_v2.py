@@ -111,7 +111,7 @@ class classifier_v2(QMainWindow):
         self.images= 0                          #tracks number of images
         self.feats = None
         self.imag_reps = []                     #classified representations
-        self.un_prev = []                     #previous unclassified
+        self.un_prev = ([],[])                     #previous unclassified
         self.class_vals = []                    #classified indexes
         self.classA_list = []
         self.classB_list = []
@@ -136,7 +136,6 @@ class classifier_v2(QMainWindow):
         self.shtct.activated.connect(self.classA_event)
         self.skct = QShortcut(QKeySequence("3"),self)
         self.skct.activated.connect(self.skip_event)
-        self.skipped = []
 
         combo.move(25, 400)
         self.lbl.move(25, 370)
@@ -303,7 +302,6 @@ class classifier_v2(QMainWindow):
         self.d[self.paths[self.index-1]] = 2
         self.skip_flg = False
         self.rec.append(self.index)
-        self.images+=1
         self.numImages.setText(str(self.images))
         self.classA_list.append(self.index)
         self.imag_reps.append(self.npy_dict[self.index])
@@ -314,7 +312,6 @@ class classifier_v2(QMainWindow):
         self.d[self.paths[self.index-1]] = 1
         self.skip_flg = False
         self.rec.append(self.index)
-        self.images+=1
         self.numImages.setText(str(self.images))
         self.classB_list.append(self.index)
         self.imag_reps.append(self.npy_dict[self.index])
@@ -337,7 +334,7 @@ class classifier_v2(QMainWindow):
 
 #first case should only occur once at the beginning
     def get_unclassified(self):
-        if self.un_prev == None:
+        if self.un_prev == ([],[]):
             unclass = []
             indexes = []
             for i in self.npy_dict:
@@ -416,6 +413,9 @@ class classifier_v2(QMainWindow):
         self.label.setText("Choose Image Features")
 
     def load_img(self):
+        print(self.index)
+        #print(self.paths[9801])
+        #print(self.paths[9800])
         if self.index < len(self.paths):
             self.numImages.setText(str(self.images))
             pixmap = QPixmap(self.paths[self.index-1])
