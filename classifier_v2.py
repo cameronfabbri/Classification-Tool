@@ -31,7 +31,7 @@ class classifier_v2(QMainWindow):
     def __init__(self):
         super().__init__()
         css = """QWidget{
-            Background: #efd499;
+            Background: #9ee8ff;
             color:black;
             font:12px bold;
             font-weight:bold;
@@ -39,7 +39,7 @@ class classifier_v2(QMainWindow):
             height: 11px;
             }
             QPushButton{
-            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #9e8550, stop: 1; #847457);
+            background-color: #9ee8ff;
             border-radius: 15px;
             border: 1px;
             border-style: outset;
@@ -49,7 +49,7 @@ class classifier_v2(QMainWindow):
             padding: 2px;
           }
             QPushButton:pressed {
-            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #847457, stop: 1 #9e8550);
+            background-color: #0171a5;
             border-style: inset;
         }
         """
@@ -62,42 +62,53 @@ class classifier_v2(QMainWindow):
         self.statusBar().showMessage('No Images Loaded')
         self.label = QLabel("No Images Loaded",self)
         self.label.resize(300,300)
-        self.label.move(340,50)
-        self.dist = QLabel("1 : Distorted",self)
-        self.dist.resize(100,30)
-        self.dist.move(340,420)
+        self.label.move(310,50)
+        self.distorted = QLabel("1 : Distorted",self)
+        self.distorted.resize(100,30)
+        self.distorted.move(310,420)
         self.un = QLabel("2 : Non-Distorted",self)
         self.un.resize(120,30)
-        self.un.move(340,440)
+        self.un.move(310,440)
         self.sk = QLabel("3 : Skip Image",self)
         self.sk.resize(120,30)
-        self.sk.move(340,460)
+        self.sk.move(310,460)
+        self.img_lbl = QLabel("Images Classified: ",self)
+        self.img_lbl.resize(115,20)
+        self.img_lbl.move(25,440)
         self.numImages = QLabel("0",self)
-        self.numImages.resize(self.label.sizeHint())
-        self.numImages.move(150,400)
-        self.setGeometry(0,0,700,500)
+        self.numImages.resize(20,20)
+        self.numImages.move(140,440)
+        self.setGeometry(0,0,600,500)
         self.setWindowTitle("Binary Picture Classifier")
         self.setWindowIcon(QIcon("download-1.png"))
         self.qbtn = QPushButton("Quit",self)
         self.qbtn.clicked.connect(self.save)
-        self.qbtn.resize(50,20)
-        self.qbtn.move(200,400)
+        self.qbtn.resize(50,25)
+        self.qbtn.move(25,260)
         self.next = QPushButton("Next",self)
         self.next.resize(50,20)
-        self.next.move(275,400)
+        self.next.move(25,220)
         self.next.clicked.connect(self.getNext)
         self.prev_btn = QPushButton("Previous",self)
         self.prev_btn.resize(70,20)
-        self.prev_btn.move(350,400)
+        self.prev_btn.move(25,180)
         self.prev_btn.clicked.connect(self.getPrev)
         self.load = QPushButton("Load Images",self)
-        self.load.resize(100,20)
-        self.load.move(440,400)
+        self.load.resize(100,25)
+        self.load.move(25,140)
         self.load.clicked.connect(self.init_load)
         self.skip = QPushButton("Skip",self)
-        self.skip.resize(50,20)
-        self.skip.move(560,400)
-        self.skip.clicked.connect(self.skip_img)
+        self.skip.resize(50,25)
+        self.skip.move(25,100)
+        self.dist = QPushButton("Distorted",self)
+        self.dist.resize(70,20)
+        self.dist.move(25,60)
+        self.dist.clicked.connect(self.classB_event)
+        self.nondist = QPushButton("Non-Distorted",self)
+        self.nondist.resize(110,20)
+        self.nondist.move(25,20)
+        self.nondist.clicked.connect(self.classA_event)
+        self.skip.clicked.connect(self.skip_event)
         self.lbl = QLabel("Image Features:",self)
         combo = QComboBox(self)
         combo.addItem("inception_v1")
@@ -136,8 +147,9 @@ class classifier_v2(QMainWindow):
         self.shtct.activated.connect(self.classA_event)
         self.skct = QShortcut(QKeySequence("3"),self)
         self.skct.activated.connect(self.skip_event)
-
+        combo.resize(130,30)
         combo.move(25, 400)
+        self.lbl.resize(150,30)
         self.lbl.move(25, 370)
         combo.activated[str].connect(self.chooseFeats)
 
@@ -147,8 +159,8 @@ class classifier_v2(QMainWindow):
         combo2.addItem("Closest")
         combo2.addItem("Random")
         combo2.activated[str].connect(self.chooseModel)
-
         combo2.move(25, 325)
+        lbl2.resize(150,30)
         lbl2.move(25, 300)
         self.show()
 
@@ -297,7 +309,7 @@ class classifier_v2(QMainWindow):
             self.save()
 
 
-    def classA_event(self):  #class A Event (User Presses 1)
+    def classA_event(self):  #class A Event (User Presses 2)
         self.images+=1
         self.d[self.paths[self.index-1]] = 2
         self.skip_flg = False
@@ -307,7 +319,7 @@ class classifier_v2(QMainWindow):
         self.imag_reps.append(self.npy_dict[self.index])
         self.class_vals.append(2)
         self.getNext()
-    def classB_event(self): #class B Event (User Presses 2)
+    def classB_event(self): #class B Event (User Presses )
         self.images+=1
         self.d[self.paths[self.index-1]] = 1
         self.skip_flg = False
@@ -419,7 +431,8 @@ class classifier_v2(QMainWindow):
         if self.index < len(self.paths):
             self.numImages.setText(str(self.images))
             pixmap = QPixmap(self.paths[self.index-1])
-            self.label.move(320,50)
+            self.label.resize(300,300)
+            self.label.move(310,50)
             self.label.setPixmap(pixmap)
 
     def getPaths(self,data_dir):
@@ -440,8 +453,6 @@ class classifier_v2(QMainWindow):
                         self.full_paths.append(fname_)
         return self.paths
 
-    def skip_img(self):
-        print("not yet implemented")
 
     def save(self):
         if self.get_unclassified() == ([],[]) and self.paths != []:
