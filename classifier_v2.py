@@ -77,7 +77,7 @@ class classifier_v2(QMainWindow):
         self.img_lbl.move(250,370)
         self.numImages = QLabel("0",self)
         self.numImages.resize(50,20)
-        self.numImages.move(370,370)
+        self.numImages.move(380,370)
         self.setGeometry(0,0,450,430)
         self.setWindowTitle("Binary Picture Classifier")
         self.setWindowIcon(QIcon("download-1.png"))
