@@ -384,6 +384,7 @@ class classifier_v2(QMainWindow):
         print("here")
         self.images-=1
         if self.learn_type == 'r' or (self.classA_list == [] or self.classB_list == []):
+            print(1)
             self.d[self.paths[self.index-2]] = 0
             index = self.index
             index -=1
@@ -397,13 +398,16 @@ class classifier_v2(QMainWindow):
             else:
                 self.skipped.remove(self.index)
         elif self.learn_type in "cf":
+            print(2)
             if self.skip_flg:
                 self.skipped.remove(self.prev)
                 self.rec.remove(self.prev)
                 self.index = self.prev
                 self.d[self.paths[self.index-1]] = 0
                 self.load_img()
+                print(2.5)
             else:
+                print(3)
                 self.index = self.prev
                 self.imag_reps.reverse()
                 self.class_vals.reverse()
@@ -413,9 +417,12 @@ class classifier_v2(QMainWindow):
                 self.class_vals.reverse()
                 self.d[self.paths[self.index-1]] = 0
                 if self.index in self.classA_list:
+                    print(4)
                     self.classA_list.remove(self.index)
                 else:
+                    print(5)
                     self.classB_list.remove(self.index)
+                print(6)
                 self.load_img()
 
 
