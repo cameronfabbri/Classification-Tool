@@ -143,6 +143,8 @@ class classifier_v2(QMainWindow):
         self.prev = -1                          #index of previous image
         self.k = QShortcut(QKeySequence("1"),self)
         self.k.activated.connect(self.classB_event)
+        self.p = QShortcut(QKeySequence("4"),self)
+        self.p.activated.connect(self.getPrev)
         self.shtct = QShortcut(QKeySequence("2"),self)
         self.shtct.activated.connect(self.classA_event)
         self.skct = QShortcut(QKeySequence("3"),self)
