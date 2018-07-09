@@ -31,20 +31,20 @@ class classifier_v2(QMainWindow):
     def __init__(self):
         super().__init__()
         css = """QWidget{
-            Background: #9ee8ff;
-            color:black;
+            Background: #ffffff;
+            color:#4f97c1;
             font:12px bold;
             font-weight:bold;
             border-radius: 1px;
             height: 11px;
             }
             QPushButton{
-            background-color: #9ee8ff;
+            background-color: #ffffff;
             border-radius: 15px;
             border: 1px;
             border-style: outset;
             border-width: 2px;
-            border-color: black;
+            border-color: #4f97c1;
             font: 13px;
             padding: 2px;
           }
@@ -62,23 +62,23 @@ class classifier_v2(QMainWindow):
         self.statusBar().showMessage('No Images Loaded')
         self.label = QLabel("No Images Loaded",self)
         self.label.resize(300,300)
-        self.label.move(310,50)
+        self.label.move(200,30)
         self.distorted = QLabel("1 : Distorted",self)
         self.distorted.resize(100,30)
-        self.distorted.move(310,420)
+        self.distorted.move(250,300)
         self.un = QLabel("2 : Non-Distorted",self)
         self.un.resize(120,30)
-        self.un.move(310,440)
+        self.un.move(250,320)
         self.sk = QLabel("3 : Skip Image",self)
         self.sk.resize(120,30)
-        self.sk.move(310,460)
+        self.sk.move(250,340)
         self.img_lbl = QLabel("Images Classified: ",self)
         self.img_lbl.resize(115,20)
-        self.img_lbl.move(25,440)
+        self.img_lbl.move(250,370)
         self.numImages = QLabel("0",self)
         self.numImages.resize(20,20)
-        self.numImages.move(140,440)
-        self.setGeometry(0,0,600,500)
+        self.numImages.move(370,370)
+        self.setGeometry(0,0,450,430)
         self.setWindowTitle("Binary Picture Classifier")
         self.setWindowIcon(QIcon("download-1.png"))
         self.qbtn = QPushButton("Quit",self)
@@ -135,7 +135,7 @@ class classifier_v2(QMainWindow):
         self.index = 1                          #image index (starts at 1)
         self.path = None                        #path to directory of images
         self.d = {}                             #dictionary of {image:label}
-        self.learn_type = "random"              #actove learning method (default = random)
+        self.learn_type = "random"              #active learning method (default = random)
         self.first_time = False                 #only for a certain case when partial-fit does not have enough data
         self.clf = linear_model.SGDClassifier()
         self.skip_flg = False
@@ -147,10 +147,10 @@ class classifier_v2(QMainWindow):
         self.shtct.activated.connect(self.classA_event)
         self.skct = QShortcut(QKeySequence("3"),self)
         self.skct.activated.connect(self.skip_event)
-        combo.resize(130,30)
-        combo.move(25, 400)
-        self.lbl.resize(150,30)
-        self.lbl.move(25, 370)
+        combo.resize(120,25)
+        combo.move(25, 360)
+        self.lbl.resize(150,25)
+        self.lbl.move(25, 340)
         combo.activated[str].connect(self.chooseFeats)
 
         lbl2 = QLabel("Active Learning Method:",self)
@@ -159,9 +159,9 @@ class classifier_v2(QMainWindow):
         combo2.addItem("Closest")
         combo2.addItem("Random")
         combo2.activated[str].connect(self.chooseModel)
-        combo2.move(25, 325)
-        lbl2.resize(150,30)
-        lbl2.move(25, 300)
+        combo2.move(25, 315)
+        lbl2.resize(150,25)
+        lbl2.move(25, 290)
         self.show()
 
 
@@ -426,13 +426,11 @@ class classifier_v2(QMainWindow):
 
     def load_img(self):
         print(self.index)
-        #print(self.paths[9801])
-        #print(self.paths[9800])
         if self.index < len(self.paths):
             self.numImages.setText(str(self.images))
             pixmap = QPixmap(self.paths[self.index-1])
             self.label.resize(300,300)
-            self.label.move(310,50)
+            self.label.move(170,30)
             self.label.setPixmap(pixmap)
 
     def getPaths(self,data_dir):
