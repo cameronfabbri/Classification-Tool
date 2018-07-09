@@ -381,6 +381,7 @@ class classifier_v2(QMainWindow):
          self.load_img()
 
     def getPrev(self):
+        print("here")
         self.images-=1
         if self.learn_type == 'r' or (self.classA_list == [] or self.classB_list == []):
             self.d[self.paths[self.index-2]] = 0
