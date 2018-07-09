@@ -319,7 +319,7 @@ class classifier_v2(QMainWindow):
         self.imag_reps.append(self.npy_dict[self.index])
         self.class_vals.append(2)
         self.getNext()
-    def classB_event(self): #class B Event (User Presses )
+    def classB_event(self): #class B Event (User Presses 1)
         self.images+=1
         self.d[self.paths[self.index-1]] = 1
         self.skip_flg = False
