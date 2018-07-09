@@ -73,10 +73,10 @@ class classifier_v2(QMainWindow):
         self.sk.resize(120,30)
         self.sk.move(250,340)
         self.img_lbl = QLabel("Images Classified: ",self)
-        self.img_lbl.resize(115,20)
+        self.img_lbl.resize(125,20)
         self.img_lbl.move(250,370)
         self.numImages = QLabel("0",self)
-        self.numImages.resize(20,20)
+        self.numImages.resize(50,20)
         self.numImages.move(370,370)
         self.setGeometry(0,0,450,430)
         self.setWindowTitle("Binary Picture Classifier")
@@ -160,7 +160,7 @@ class classifier_v2(QMainWindow):
         combo2.addItem("Random")
         combo2.activated[str].connect(self.chooseModel)
         combo2.move(25, 315)
-        lbl2.resize(150,25)
+        lbl2.resize(160,25)
         lbl2.move(25, 290)
         self.show()
 
@@ -429,9 +429,10 @@ class classifier_v2(QMainWindow):
         if self.index < len(self.paths):
             self.numImages.setText(str(self.images))
             pixmap = QPixmap(self.paths[self.index-1])
+            pixmap_resized = pixmap.scaled(200, 200, QtCore.Qt.KeepAspectRatio)
             self.label.resize(300,300)
             self.label.move(170,30)
-            self.label.setPixmap(pixmap)
+            self.label.setPixmap(pixmap_resized)
 
     def getPaths(self,data_dir):
         exts = ['*.JPEG','*.JPG','*.jpg','*.jpeg','*.png','*.PNG']
